@@ -31,15 +31,9 @@
             "group": "About Lightcone",
             "icon": "angle-right",
             "expanded": true,
-            "pages": []
-          },
-          {
-            "group": "Customization",
-            "pages": []
-          },
-          {
-            "group": "Writing content",
-            "pages": []
+            "pages": [
+              "guides/about-lightcone/test"
+            ]
           },
           {
             "group": "Mintlify",
