@@ -38,6 +38,13 @@
             ]
           },
           {
+            "group": "FAQ",
+            "pages": [
+              "guides/faq/oracles",
+              "guides/faq/oracles-copied-1"
+            ]
+          },
+          {
             "group": "Mintlify",
             "pages": [
               "index",
