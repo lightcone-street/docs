@@ -1,0 +1,55 @@
+---
+title: 'REST API Overview'
+description: 'Introduction to the Lightcone REST API'
+---
+
+## Base URL
+
+```
+https://api3.internalcone.com/api
+```
+
+## Overview
+
+The Lightcone REST API provides programmatic access to the conditional token exchange on Solana. It enables you to:
+
+- Query markets and orderbooks
+- Submit and manage orders
+- Retrieve positions and balances
+- Access historical trades and price data
+
+## Architecture
+
+Lightcone uses a hybrid CLOB (Central Limit Order Book) architecture:
+
+- **Off-chain matching**: Orders are matched by the engine for low latency
+- **On-chain settlement**: Trades are executed on Solana for security
+- **Real-time updates**: WebSocket streams for orderbook and trade data
+
+## Pagination
+
+Endpoints that return lists support cursor-based pagination:
+
+- Use the `limit` parameter to control page size (default: 100)
+- Use the `cursor` parameter with the `next_cursor` value from the previous response
+- Check `has_more` to determine if there are additional pages
+
+## Error Handling
+
+The API uses standard HTTP status codes:
+
+| Status | Description |
+|--------|-------------|
+| 200    | Success |
+| 400    | Bad request (invalid parameters) |
+| 404    | Resource not found |
+| 500    | Internal server error |
+
+Error responses include a JSON body:
+
+```json
+{
+  "status": "error",
+  "message": "Detailed error description"
+}
+```

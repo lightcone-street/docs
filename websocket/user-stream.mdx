@@ -1,0 +1,320 @@
+---
+title: 'User Stream'
+description: 'Real-time updates for user orders, fills, and balances'
+---
+
+## Overview
+
+The `user` channel provides a unified stream of all user-specific events:
+- Order fills (maker and taker)
+- Order placements (limit orders resting on book)
+- Order cancellations  
+- Balance updates after deposits/withdrawals
+
+Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
+
+## Subscribe
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "user",
+    "user": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+  }
+}
+```
+
+### Parameters
+
+<ParamField path="user" type="string" required>
+  User's Solana wallet address (base58 encoded)
+</ParamField>
+
+## Initial Snapshot
+
+Immediately after subscribing, you receive the user's current state:
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "event_type": "snapshot",
+    "orders": [
+      {
+        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "orderbook_id": "5BNoPgYe_CrhujZLf",
+        "order_id": 12345,
+        "side": "bid",
+        "price": 650000,
+        "size": 1000000,
+        "original_size": 2000000,
+        "filled_size": 1000000,
+        "created_at": 1736456789000
+      }
+    ],
+    "balances": {
+      "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL_4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy": {
+        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
+        "outcomes": [
+          {
+            "outcome_index": 0,
+            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+            "idle": 5000000,
+            "on_book": 2000000
+          },
+          {
+            "outcome_index": 1,
+            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+            "idle": 3000000,
+            "on_book": 0
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Order Updates
+
+All order state changes are sent as `order_update` events. The `size` field indicates the order state:
+- `size > 0`: Order is still open with that amount on the book
+- `size == 0`: Order is no longer active (fully filled or cancelled)
+
+### Order Filled
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "timestamp": "2026-01-09T20:43:24.123Z",
+    "event_type": "order_update",
+    "order": {
+      "order_id": 12345,
+      "price": 650000,
+      "size": 0,
+      "original_size": 1000000,
+      "filled_size": 1000000,
+      "side": "bid",
+      "is_maker": false,
+      "created_at": 1736456789000,
+      "balance": {
+        "outcomes": [
+          {
+            "outcome_index": 0,
+            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+            "idle": 1000000,
+            "on_book": 0
+          },
+          {
+            "outcome_index": 1,
+            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+            "idle": 0,
+            "on_book": 0
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### Maker Partially Filled
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "timestamp": "2026-01-09T20:43:24.123Z",
+    "event_type": "order_update",
+    "order": {
+      "order_id": 12340,
+      "price": 650000,
+      "size": 300000,
+      "original_size": 500000,
+      "filled_size": 200000,
+      "side": "ask",
+      "is_maker": true,
+      "created_at": 1736456700000,
+      "balance": {
+        "outcomes": [
+          {
+            "outcome_index": 0,
+            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+            "idle": 0,
+            "on_book": 300000
+          },
+          {
+            "outcome_index": 1,
+            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+            "idle": 200000,
+            "on_book": 0
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+### New Order Placed
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "timestamp": "2026-01-09T20:43:24.789Z",
+    "event_type": "order_update",
+    "order": {
+      "order_id": 12346,
+      "price": 640000,
+      "size": 500000,
+      "original_size": 500000,
+      "filled_size": 0,
+      "side": "bid",
+      "is_maker": true,
+      "created_at": 1736456789789,
+      "balance": {
+        "outcomes": [
+          {
+            "outcome_index": 0,
+            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+            "idle": 500000,
+            "on_book": 0
+          },
+          {
+            "outcome_index": 1,
+            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+            "idle": 0,
+            "on_book": 500000
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+## Balance Updates
+
+Deposits and withdrawals trigger `balance_update` events:
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "event_type": "balance_update",
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
+    "balance": {
+      "outcomes": [
+        {
+          "outcome_index": 0,
+          "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+          "idle": 5000000,
+          "on_book": 0
+        },
+        {
+          "outcome_index": 1,
+          "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+          "idle": 5000000,
+          "on_book": 0
+        }
+      ]
+    },
+    "timestamp": "2026-01-09T20:43:24.123Z"
+  }
+}
+```
+
+## Field Definitions
+
+### Order Fields
+
+<ResponseField name="order_id" type="integer">
+  Unique order identifier
+</ResponseField>
+
+<ResponseField name="price" type="integer">
+  Order price (scaled by 1e6)
+</ResponseField>
+
+<ResponseField name="size" type="integer">
+  **Current open size** on the book (0 = order no longer active)
+</ResponseField>
+
+<ResponseField name="original_size" type="integer">
+  **Original size** when order was placed
+</ResponseField>
+
+<ResponseField name="filled_size" type="integer">
+  **Total amount filled** (convenience field: original_size - size)
+</ResponseField>
+
+<ResponseField name="side" type="string">
+  Order side: `"bid"` or `"ask"`
+</ResponseField>
+
+<ResponseField name="is_maker" type="boolean">
+  `true` if maker (order is/was resting on book)
+</ResponseField>
+
+<ResponseField name="created_at" type="integer">
+  Unix timestamp in milliseconds when order was created
+</ResponseField>
+
+### Balance Fields
+
+<ResponseField name="outcomes" type="array">
+  Array of outcome balances for this market
+</ResponseField>
+
+<ResponseField name="outcomes[].outcome_index" type="integer">
+  Index of the outcome (0, 1, 2, ...)
+</ResponseField>
+
+<ResponseField name="outcomes[].mint" type="string">
+  Conditional token mint address for this outcome
+</ResponseField>
+
+<ResponseField name="outcomes[].idle" type="integer">
+  Available tokens (not locked in orders)
+</ResponseField>
+
+<ResponseField name="outcomes[].on_book" type="integer">
+  Tokens locked in resting orders
+</ResponseField>
+
+## Event Types Summary
+
+| Event Type | Description |
+|------------|-------------|
+| `snapshot` | Initial state with all open orders and balances |
+| `order_update` | Order state change (placed, filled, cancelled) |
+| `balance_update` | Balance change from deposit/withdrawal |
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "user",
+    "user": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+  }
+}
+```
+

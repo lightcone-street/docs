@@ -3,88 +3,109 @@
   "theme": "willow",
   "name": "Lightcone",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
+  "openapi": "api-reference/openapi.json",
   "navigation": {
-    "global": {
-      "anchors": [
-        {
-          "anchor": "App",
-          "icon": "chart-line-up",
-          "href": "https://mintlify.com/docs"
-        },
-        {
-          "anchor": "Blog",
-          "icon": "newspaper",
-          "href": "https://mintlify.com/blog"
-        }
-      ]
-    },
     "tabs": [
       {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting Started",
-            "icon": "angle-right",
-            "expanded": true,
-            "pages": [
-              "guides/getting-started/enter-the-lightcone"
-            ]
-          },
-          {
-            "group": "About Lightcone",
-            "icon": "angle-right",
-            "expanded": true,
-            "pages": [
-              "guides/about-lightcone/test",
-              "guides/about-lightcone/test-copied-1",
-              "guides/about-lightcone/test-copied-2",
-              "guides/about-lightcone/test-copied-3"
-            ]
-          },
-          {
-            "group": "Mintlify",
-            "pages": [
-              "index",
-              "quickstart",
-              "development",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets",
-              "ai-tools/claude-code"
-            ]
-          }
-        ]
+        "name": "Guides",
+        "url": "guides"
       },
       {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
+        "name": "API Reference",
+        "url": "api-reference"
       }
     ]
   },
+  "anchors": [
+    {
+      "name": "App",
+      "icon": "chart-line-up",
+      "url": "https://lightcone.xyz"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://mintlify.com/blog"
+    }
+  ],
+  "tabs": [
+    {
+      "tab": "Guides",
+      "groups": [
+        {
+          "group": "Getting Started",
+          "pages": [
+            "guides/getting-started/enter-the-lightcone"
+          ]
+        },
+        {
+          "group": "About Lightcone",
+          "pages": [
+            "guides/about-lightcone/test",
+            "guides/about-lightcone/test-copied-1",
+            "guides/about-lightcone/test-copied-2",
+            "guides/about-lightcone/test-copied-3"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "API Reference",
+      "groups": [
+        {
+          "group": "REST API",
+          "pages": [
+            "api-reference/rest-overview",
+            "api-reference/authentication",
+            {
+              "group": "Markets",
+              "pages": [
+                "api-reference/endpoint/get-markets",
+                "api-reference/endpoint/get-market-by-id",
+                "api-reference/endpoint/get-market-by-pubkey",
+                "api-reference/endpoint/get-deposit-mints"
+              ]
+            },
+            {
+              "group": "Market Data",
+              "pages": [
+                "api-reference/endpoint/get-orderbook-depth",
+                "api-reference/endpoint/get-price-history",
+                "api-reference/endpoint/get-trades"
+              ]
+            },
+            {
+              "group": "Trading",
+              "pages": [
+                "api-reference/endpoint/submit-order",
+                "api-reference/endpoint/cancel-order",
+                "api-reference/endpoint/cancel-all-orders",
+                "api-reference/endpoint/get-user-orders",
+                "api-reference/endpoint/get-user-positions",
+                "api-reference/endpoint/get-user-market-positions"
+              ]
+            }
+          ]
+        },
+        {
+          "group": "WebSocket API",
+          "pages": [
+            "websocket/overview",
+            "websocket/orderbook-updates",
+            "websocket/trades",
+            "websocket/user-stream",
+            "websocket/price-history",
+            "websocket/market-events"
+          ]
+        }
+      ]
+    }
+  ],
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
@@ -93,32 +114,19 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@lightcone.xyz"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Launch App",
+      "href": "https://lightcone.xyz"
     }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/lightconexyz",
+      "github": "https://github.com/lightcone-street/"
     }
   },
   "background": {

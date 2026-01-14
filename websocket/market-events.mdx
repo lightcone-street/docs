@@ -1,0 +1,94 @@
+---
+title: 'Market Stream'
+description: 'Real-time market settlement and status changes'
+---
+
+## Overview
+
+The `market` channel provides market-level events for monitoring market lifecycle, including settlement and status changes.
+
+## Subscribe
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "market",
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
+  }
+}
+```
+
+## Parameters
+
+<ParamField path="market_pubkey" type="string" required>
+  Market PDA to monitor for events
+</ParamField>
+
+## Events
+
+### Market Settled
+
+Triggered when a market is resolved:
+
+```json
+{
+  "type": "market",
+  "version": 0.1,
+  "data": {
+    "event_type": "market_settled",
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "market_name": "Vitalik steps away from Ethereum Foundation",
+    "winning_condition": "A",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf", "79s9ZAcN_5BNoPgYe"],
+    "authority": "3fhVBVTvMEbuLoNtYCH7scjbGX2AiRKEow82KTBs79Nj",
+    "timestamp": "2026-01-09T20:43:24Z"
+  }
+}
+```
+
+## Response Fields
+
+<ResponseField name="event_type" type="string">
+  Event type: `"market_settled"`
+</ResponseField>
+
+<ResponseField name="market_pubkey" type="string">
+  The market that was settled
+</ResponseField>
+
+<ResponseField name="market_name" type="string">
+  Human-readable market name
+</ResponseField>
+
+<ResponseField name="winning_condition" type="string">
+  The winning outcome: `"A"` or `"B"`
+  
+  - `"A"` corresponds to outcome_index 0 (typically YES)
+  - `"B"` corresponds to outcome_index 1 (typically NO)
+</ResponseField>
+
+<ResponseField name="orderbook_ids" type="string[]">
+  All orderbook IDs for this market
+</ResponseField>
+
+<ResponseField name="authority" type="string">
+  Admin/oracle address that settled the market
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of settlement
+</ResponseField>
+
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "market",
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
+  }
+}
+```

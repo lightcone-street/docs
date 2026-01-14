@@ -1,0 +1,189 @@
+---
+title: 'Orderbook Updates'
+description: 'Real-time orderbook data with efficient delta updates'
+---
+
+## Overview
+
+The `book_update` channel provides efficient orderbook updates using delta mode:
+1. **Initial snapshot** with full orderbook state
+2. **Delta updates** every 50ms with only changed price levels
+
+<Info>
+Delta mode uses ~95% less bandwidth than full snapshots while providing faster updates (50ms vs 200ms).
+</Info>
+
+## Subscribe
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "book_update",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```
+
+### Parameters
+
+<ParamField path="orderbook_ids" type="string[]" required>
+  Array of orderbook IDs to subscribe to. You can subscribe to multiple orderbooks with one request.
+</ParamField>
+
+## Messages
+
+### Initial Snapshot
+
+The first message contains the full orderbook state with `is_snapshot: true`:
+
+```json
+{
+  "type": "book_update",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "timestamp": "2026-01-09T20:43:24Z",
+    "is_snapshot": true,
+    "bids": [
+      {"side": "bid", "price": 650000, "size": 1000000},
+      {"side": "bid", "price": 640000, "size": 2000000}
+    ],
+    "asks": [
+      {"side": "ask", "price": 660000, "size": 1500000},
+      {"side": "ask", "price": 670000, "size": 2500000}
+    ]
+  }
+}
+```
+
+### Delta Updates
+
+Subsequent messages contain only changed price levels:
+
+```json
+{
+  "type": "book_update",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "timestamp": "2026-01-09T20:43:24.050Z",
+    "bids": [
+      {"side": "bid", "price": 650000, "size": 1500000},
+      {"side": "bid", "price": 640000, "size": 0}
+    ],
+    "asks": [
+      {"side": "ask", "price": 660000, "size": 2000000}
+    ]
+  }
+}
+```
+
+## Delta Update Rules
+
+<Note>
+**Apply these rules to maintain your local orderbook:**
+- First message has `is_snapshot: true` - replace your entire orderbook
+- Subsequent messages have no `is_snapshot` field - apply deltas
+- `size: 0` → Delete that price level
+- `size > 0` → Update or insert that price level
+</Note>
+
+## Response Fields
+
+<ResponseField name="orderbook_id" type="string">
+  The orderbook identifier
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of the update
+</ResponseField>
+
+<ResponseField name="is_snapshot" type="boolean">
+  Present and `true` only for the initial snapshot message
+</ResponseField>
+
+<ResponseField name="bids" type="array">
+  Array of bid updates
+</ResponseField>
+
+<ResponseField name="asks" type="array">
+  Array of ask updates
+</ResponseField>
+
+<ResponseField name="bids[].side" type="string">
+  Always `"bid"` for bids
+</ResponseField>
+
+<ResponseField name="bids[].price" type="integer">
+  Price level (scaled by 1e6)
+</ResponseField>
+
+<ResponseField name="bids[].size" type="integer">
+  Total size at this price level (0 means delete)
+</ResponseField>
+
+## Example Implementation
+
+```javascript
+class OrderbookManager {
+  constructor() {
+    this.bids = new Map(); // price -> size
+    this.asks = new Map();
+  }
+
+  handleUpdate(data) {
+    if (data.is_snapshot) {
+      // Full snapshot - replace everything
+      this.bids.clear();
+      this.asks.clear();
+      
+      data.bids.forEach(level => {
+        this.bids.set(level.price, level.size);
+      });
+      
+      data.asks.forEach(level => {
+        this.asks.set(level.price, level.size);
+      });
+    } else {
+      // Delta update - apply changes
+      data.bids?.forEach(level => {
+        if (level.size === 0) {
+          this.bids.delete(level.price);
+        } else {
+          this.bids.set(level.price, level.size);
+        }
+      });
+      
+      data.asks?.forEach(level => {
+        if (level.size === 0) {
+          this.asks.delete(level.price);
+        } else {
+          this.asks.set(level.price, level.size);
+        }
+      });
+    }
+  }
+
+  getBestBid() {
+    return Math.max(...this.bids.keys());
+  }
+
+  getBestAsk() {
+    return Math.min(...this.asks.keys());
+  }
+}
+```
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "book_update",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```
+

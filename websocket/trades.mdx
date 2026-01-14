@@ -1,0 +1,89 @@
+---
+title: 'Trade Stream'
+description: 'Real-time trade executions as they happen'
+---
+
+## Overview
+
+The `trades` channel provides live trade execution data for specified orderbooks. Each trade is broadcast immediately after execution.
+
+## Subscribe
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "trades",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```
+
+### Parameters
+
+<ParamField path="orderbook_ids" type="string[]" required>
+  Array of orderbook IDs to receive trades from
+</ParamField>
+
+## Messages
+
+Each trade execution triggers a message:
+
+```json
+{
+  "type": "trades",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "price": 650000,
+    "size": 1000000,
+    "side": "bid",
+    "timestamp": "2026-01-09T20:43:24.123Z",
+    "trade_id": "trade_1736456789000"
+  }
+}
+```
+
+## Response Fields
+
+<ResponseField name="orderbook_id" type="string">
+  The orderbook where the trade occurred
+</ResponseField>
+
+<ResponseField name="price" type="integer">
+  Trade execution price (scaled by 1e6)
+  
+  Example: `650000` = 0.65
+</ResponseField>
+
+<ResponseField name="size" type="integer">
+  Trade size in base token units
+</ResponseField>
+
+<ResponseField name="side" type="string">
+  Taker's side: `"bid"` (buy) or `"ask"` (sell)
+  
+  - `"bid"` means a market buy order took liquidity from the ask side
+  - `"ask"` means a market sell order took liquidity from the bid side
+</ResponseField>
+
+<ResponseField name="timestamp" type="string">
+  ISO 8601 timestamp of trade execution
+</ResponseField>
+
+<ResponseField name="trade_id" type="string">
+  Unique identifier for this trade
+</ResponseField>
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "trades",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```
+
