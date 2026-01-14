@@ -1,0 +1,180 @@
+---
+title: 'Authentication'
+description: 'How to authenticate and sign orders'
+---
+
+## Overview
+
+The API is public for read operations. Order submission requires Ed25519 signatures from the user's Solana wallet.
+
+## Signing Orders
+
+When submitting orders, you must sign the order data with your Solana wallet's private key:
+
+1. **Create the order payload** with all required fields (maker, nonce, market, base_token, quote_token, side, amounts)
+2. **Sign the payload** using Ed25519 with your wallet's keypair
+3. **Include the signature** in the request as a base58-encoded string
+
+The signature proves ownership of the wallet and prevents order tampering.
+
+## Code Examples
+
+<CodeGroup>
+
+```rust Rust
+use solana_sdk::{
+    signature::{Keypair, Signer},
+    pubkey::Pubkey,
+};
+use reqwest;
+use serde_json::json;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+    
+    // Create order data
+    let order = json!({
+        "maker": keypair.pubkey().to_string(),
+        "nonce": 1736456789000i64,
+        "market": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+        "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+        "side": 0,
+        "maker_amount": 350000i64,
+        "taker_amount": 650000i64,
+        "expiration": 0i64,
+        "orderbook_id": "5BNoPgYe_CrhujZLf"
+    });
+    
+    // Sign the order (implement your signing logic)
+    let signature = keypair.sign_message(
+        serde_json::to_string(&order)?.as_bytes()
+    );
+    
+    // Add signature to order
+    let mut order_with_sig = order.clone();
+    order_with_sig["signature"] = json!(signature.to_string());
+    
+    // Submit order
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://api3.internalcone.com/api/orders/submit")
+        .json(&order_with_sig)
+        .send()
+        .await?;
+    
+    println!("Response: {:?}", response.text().await?);
+    Ok(())
+}
+```
+
+```typescript TypeScript
+import { Keypair } from '@solana/web3.js';
+import bs58 from 'bs58';
+import nacl from 'tweetnacl';
+
+// Your wallet keypair
+const keypair = Keypair.generate();
+
+// Create order data
+const order = {
+  maker: keypair.publicKey.toBase58(),
+  nonce: Date.now(),
+  market: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+  base_token: "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+  quote_token: "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+  side: 0,
+  maker_amount: 350000,
+  taker_amount: 650000,
+  expiration: 0,
+  orderbook_id: "5BNoPgYe_CrhujZLf"
+};
+
+// Sign the order
+const message = Buffer.from(JSON.stringify(order));
+const signature = nacl.sign.detached(message, keypair.secretKey);
+const signatureBase58 = bs58.encode(signature);
+
+// Submit order
+const response = await fetch('https://api3.internalcone.com/api/orders/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ ...order, signature: signatureBase58 })
+});
+
+console.log(await response.json());
+```
+
+```python Python
+from solders.keypair import Keypair
+from solders.signature import Signature
+import requests
+import json
+import base58
+
+# Your wallet keypair
+keypair = Keypair()
+
+# Create order data
+order = {
+    "maker": str(keypair.pubkey()),
+    "nonce": 1736456789000,
+    "market": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+    "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+    "side": 0,
+    "maker_amount": 350000,
+    "taker_amount": 650000,
+    "expiration": 0,
+    "orderbook_id": "5BNoPgYe_CrhujZLf"
+}
+
+# Sign the order
+message = json.dumps(order).encode()
+signature = keypair.sign_message(message)
+signature_base58 = base58.b58encode(bytes(signature)).decode()
+
+# Submit order
+order["signature"] = signature_base58
+response = requests.post(
+    "https://api3.internalcone.com/api/orders/submit",
+    json=order
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+<Warning>
+  Never share your private key or commit it to version control. Use environment variables or secure key management systems.
+</Warning>
+
+## Order Fields
+
+When creating an order, the following fields are required:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `maker` | string | Your Solana wallet public key |
+| `nonce` | integer | Unique identifier (typically timestamp in milliseconds) |
+| `market` | string | Market public key |
+| `base_token` | string | Base token address |
+| `quote_token` | string | Quote token address |
+| `side` | integer | 0 = BID (buy), 1 = ASK (sell) |
+| `maker_amount` | integer | Amount you're providing |
+| `taker_amount` | integer | Amount you want to receive |
+| `expiration` | integer | Unix timestamp (0 = no expiration) |
+| `signature` | string | Base58-encoded Ed25519 signature |
+| `orderbook_id` | string | Orderbook identifier |
+
+## Security Best Practices
+
+- **Never expose private keys** in client-side code or version control
+- **Use environment variables** for sensitive configuration
+- **Validate all inputs** before signing
+- **Implement nonce tracking** to prevent replay attacks
+- **Set reasonable expirations** on orders to limit exposure
+

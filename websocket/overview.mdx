@@ -1,0 +1,110 @@
+---
+title: 'WebSocket Overview'
+description: 'Real-time data streams for orderbooks, trades, and user updates'
+---
+
+## Connection
+
+Connect to the WebSocket server at:
+
+```
+wss://api3.internalcone.com/ws
+```
+
+## Available Channels
+
+<CardGroup cols={2}>
+  <Card title="Orderbook Updates" icon="book" href="/websocket/orderbook-updates">
+    Real-time delta updates with initial snapshot
+  </Card>
+  <Card title="Trades" icon="arrow-right-arrow-left" href="/websocket/trades">
+    Live trade executions as they happen
+  </Card>
+  <Card title="User Stream" icon="user" href="/websocket/user-stream">
+    Orders, fills, cancellations, and balances
+  </Card>
+  <Card title="Price History" icon="chart-line" href="/websocket/price-history">
+    OHLCV candles with customizable resolutions
+  </Card>
+  <Card title="Market Events" icon="flag" href="/websocket/market-events">
+    Market settlement and status changes
+  </Card>
+</CardGroup>
+
+## Message Format
+
+All WebSocket messages follow this structure:
+
+**Client → Server (Subscribe/Unsubscribe):**
+```json
+{
+  "method": "subscribe",  // or "unsubscribe"
+  "params": {
+    "type": "book_update",  // channel type
+    // channel-specific parameters
+  }
+}
+```
+
+**Server → Client (Data):**
+```json
+{
+  "type": "book_update",  // channel type
+  "version": 0.1,
+  "data": {
+    // channel-specific data
+  }
+}
+```
+
+## Ping/Pong
+
+Keep the connection alive by sending periodic pings:
+
+**Request:**
+```json
+{ "method": "ping" }
+```
+
+**Response:**
+```json
+{
+  "type": "pong",
+  "version": 0.1,
+  "data": {}
+}
+```
+
+<Info>
+The server will automatically close connections that don't respond to pings within the timeout period.
+</Info>
+
+## Error Handling
+
+When an error occurs, you'll receive an error message:
+
+```json
+{
+  "type": "error",
+  "version": 0.1,
+  "data": {
+    "error": "Invalid JSON format"
+  }
+}
+```
+
+## Rate Limiting
+
+WebSocket connections are rate-limited per IP address to prevent abuse. If you exceed the rate limit, your connection will be closed.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Start with Orderbook Updates" icon="book" href="/websocket/orderbook-updates">
+    Most commonly used stream for trading interfaces
+  </Card>
+  <Card title="User Stream for Account Data" icon="user" href="/websocket/user-stream">
+    Essential for displaying user orders and balances
+  </Card>
+</CardGroup>
+

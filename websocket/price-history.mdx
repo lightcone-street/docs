@@ -1,0 +1,194 @@
+---
+title: 'Price Stream'
+description: 'Real-time OHLCV candles for charting'
+---
+
+## Overview
+
+The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Volume) data for charting. You can choose between lightweight midpoint-only updates or full OHLCV data.
+
+## Subscribe
+
+### Midpoint Only (Default - Lighter Payload)
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "price_history",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1h"
+  }
+}
+```
+
+### With Full OHLCV
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "price_history",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1h",
+    "include_ohlcv": true
+  }
+}
+```
+
+## Parameters
+
+<ParamField path="orderbook_id" type="string" required>
+  Orderbook ID to get price history for
+</ParamField>
+
+<ParamField path="resolution" type="string" required>
+  Candle resolution. Supported values:
+  - `1m` - 1 minute
+  - `5m` - 5 minutes  
+  - `15m` - 15 minutes
+  - `1h` - 1 hour
+  - `4h` - 4 hours
+  - `1d` - 1 day
+</ParamField>
+
+<ParamField path="include_ohlcv" type="boolean">
+  Include full OHLCV data (default: `false`)
+</ParamField>
+
+## Messages
+
+### Initial Snapshot (Midpoint Only)
+
+```json
+{
+  "type": "price_history",
+  "version": 0.1,
+  "data": {
+    "event_type": "snapshot",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1h",
+    "include_ohlcv": false,
+    "prices": [
+      {"t": 1736456400000, "m": 650000},
+      {"t": 1736460000000, "m": 655000}
+    ]
+  }
+}
+```
+
+### Initial Snapshot (With OHLCV)
+
+```json
+{
+  "type": "price_history",
+  "version": 0.1,
+  "data": {
+    "event_type": "snapshot",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1h",
+    "include_ohlcv": true,
+    "prices": [
+      {
+        "t": 1736456400000,
+        "o": 645000,
+        "h": 660000,
+        "l": 640000,
+        "c": 655000,
+        "v": 10000000,
+        "m": 650000,
+        "bb": 649000,
+        "ba": 651000
+      },
+      {
+        "t": 1736460000000,
+        "o": 655000,
+        "h": 665000,
+        "l": 650000,
+        "c": 660000,
+        "v": 8500000,
+        "m": 660000,
+        "bb": null,
+        "ba": null
+      }
+    ]
+  }
+}
+```
+
+### Real-time Update
+
+```json
+{
+  "type": "price_history",
+  "version": 0.1,
+  "data": {
+    "event_type": "update",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1m",
+    "t": 1736463600000,
+    "o": 660000,
+    "h": 668000,
+    "l": 658000,
+    "c": 665000,
+    "v": 5000000,
+    "m": 665000,
+    "bb": 664000,
+    "ba": 666000
+  }
+}
+```
+
+## Response Fields
+
+<ResponseField name="t" type="integer">
+  Unix timestamp in milliseconds (start of candle period)
+</ResponseField>
+
+<ResponseField name="o" type="integer | null">
+  Open price (first trade in period). `null` if no trades occurred.
+</ResponseField>
+
+<ResponseField name="h" type="integer | null">
+  High price (highest trade in period). `null` if no trades occurred.
+</ResponseField>
+
+<ResponseField name="l" type="integer | null">
+  Low price (lowest trade in period). `null` if no trades occurred.
+</ResponseField>
+
+<ResponseField name="c" type="integer | null">
+  Close price (last trade in period). `null` if no trades occurred.
+</ResponseField>
+
+<ResponseField name="v" type="integer">
+  Total volume traded in period
+</ResponseField>
+
+<ResponseField name="m" type="integer | null">
+  Midpoint snapshot: `(best_bid + best_ask) / 2`
+  
+  For historical data, carries forward from the previous period.
+</ResponseField>
+
+<ResponseField name="bb" type="integer | null">
+  Best bid at snapshot time. `null` for historical data or when price service wasn't running.
+</ResponseField>
+
+<ResponseField name="ba" type="integer | null">
+  Best ask at snapshot time. `null` for historical data or when price service wasn't running.
+</ResponseField>
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "price_history",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "resolution": "1h"
+  }
+}
+```
+
