@@ -9,18 +9,6 @@
   },
   "favicon": "/favicon.svg",
   "openapi": "api-reference/openapi.json",
-  "navigation": {
-    "tabs": [
-      {
-        "name": "Guides",
-        "url": "guides"
-      },
-      {
-        "name": "API Reference",
-        "url": "api-reference"
-      }
-    ]
-  },
   "anchors": [
     {
       "name": "App",
@@ -33,79 +21,81 @@
       "url": "https://mintlify.com/blog"
     }
   ],
-  "tabs": [
-    {
-      "tab": "Guides",
-      "groups": [
-        {
-          "group": "Getting Started",
-          "pages": [
-            "guides/getting-started/enter-the-lightcone"
-          ]
-        },
-        {
-          "group": "About Lightcone",
-          "pages": [
-            "guides/about-lightcone/test",
-            "guides/about-lightcone/test-copied-1",
-            "guides/about-lightcone/test-copied-2",
-            "guides/about-lightcone/test-copied-3"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "API Reference",
-      "groups": [
-        {
-          "group": "REST API",
-          "pages": [
-            "api-reference/rest-overview",
-            "api-reference/authentication",
-            {
-              "group": "Markets",
-              "pages": [
-                "api-reference/endpoint/get-markets",
-                "api-reference/endpoint/get-market-by-id",
-                "api-reference/endpoint/get-market-by-pubkey",
-                "api-reference/endpoint/get-deposit-mints"
-              ]
-            },
-            {
-              "group": "Market Data",
-              "pages": [
-                "api-reference/endpoint/get-orderbook-depth",
-                "api-reference/endpoint/get-price-history",
-                "api-reference/endpoint/get-trades"
-              ]
-            },
-            {
-              "group": "Trading",
-              "pages": [
-                "api-reference/endpoint/submit-order",
-                "api-reference/endpoint/cancel-order",
-                "api-reference/endpoint/cancel-all-orders",
-                "api-reference/endpoint/get-user-orders",
-                "api-reference/endpoint/get-user-positions",
-                "api-reference/endpoint/get-user-market-positions"
-              ]
-            }
-          ]
-        },
-        {
-          "group": "WebSocket API",
-          "pages": [
-            "websocket/overview",
-            "websocket/orderbook-updates",
-            "websocket/trades",
-            "websocket/user-stream",
-            "websocket/price-history",
-            "websocket/market-events"
-          ]
-        }
-      ]
-    }
-  ],
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "guides/getting-started/enter-the-lightcone"
+            ]
+          },
+          {
+            "group": "About Lightcone",
+            "pages": [
+              "guides/about-lightcone/test",
+              "guides/about-lightcone/test-copied-1",
+              "guides/about-lightcone/test-copied-2",
+              "guides/about-lightcone/test-copied-3"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "REST API",
+            "pages": [
+              "api-reference/rest-overview",
+              "api-reference/authentication",
+              {
+                "group": "Markets",
+                "pages": [
+                  "api-reference/endpoint/get-markets",
+                  "api-reference/endpoint/get-market-by-id",
+                  "api-reference/endpoint/get-market-by-pubkey",
+                  "api-reference/endpoint/get-deposit-mints"
+                ]
+              },
+              {
+                "group": "Market Data",
+                "pages": [
+                  "api-reference/endpoint/get-orderbook-depth",
+                  "api-reference/endpoint/get-price-history",
+                  "api-reference/endpoint/get-trades"
+                ]
+              },
+              {
+                "group": "Trading",
+                "pages": [
+                  "api-reference/endpoint/submit-order",
+                  "api-reference/endpoint/cancel-order",
+                  "api-reference/endpoint/cancel-all-orders",
+                  "api-reference/endpoint/get-user-orders",
+                  "api-reference/endpoint/get-user-positions",
+                  "api-reference/endpoint/get-user-market-positions"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "WebSocket API",
+            "pages": [
+              "websocket/overview",
+              "websocket/orderbook-updates",
+              "websocket/trades",
+              "websocket/user-stream",
+              "websocket/price-history",
+              "websocket/market-events"
+            ]
+          }
+        ]
+      }
+    ]
+  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
