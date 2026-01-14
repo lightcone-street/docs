@@ -28,13 +28,22 @@
         "tab": "Guides",
         "groups": [
           {
+            "group": "Getting Started",
+            "icon": "angle-right",
+            "expanded": true,
+            "pages": [
+              "guides/getting-started/enter-the-lightcone"
+            ]
+          },
+          {
             "group": "About Lightcone",
             "icon": "angle-right",
             "expanded": true,
             "pages": [
               "guides/about-lightcone/test",
               "guides/about-lightcone/test-copied-1",
-              "guides/about-lightcone/test-copied-2"
+              "guides/about-lightcone/test-copied-2",
+              "guides/about-lightcone/test-copied-3"
             ]
           },
           {
