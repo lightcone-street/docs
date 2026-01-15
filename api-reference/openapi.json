@@ -515,7 +515,8 @@
           "market_name": { "type": "string", "nullable": true, "description": "Human-readable market name/title", "example": "Vitalik steps away from Ethereum Foundation" },
           "slug": { "type": "string", "nullable": true, "description": "URL-friendly slug", "example": "vitalik-steps-away" },
           "description": { "type": "string", "nullable": true, "description": "Market description", "example": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?" },
-          "definitions": { "type": "string", "nullable": true, "description": "Resolution rules and definitions", "example": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise." },
+          "definition": { "type": "string", "nullable": true, "description": "Resolution rules and definition", "example": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise." },
+          "outcomes": { "type": "array", "items": { "type": "string" }, "description": "Outcome names (index is the outcome ID)", "example": ["YES", "NO"] },
           "banner_image_url": { "type": "string", "nullable": true, "description": "URL to banner image for market display", "example": null },
           "thumbnail_url": { "type": "string", "nullable": true, "description": "URL to thumbnail image for market display", "example": null },
           "category": { "type": "string", "nullable": true, "example": "Crypto" },
@@ -523,8 +524,6 @@
           "featured_rank": { "type": "integer", "description": "Featured rank (0 = not featured, 1-10 = higher means more prominent)", "minimum": 0, "maximum": 10, "example": 0 },
           "market_pubkey": { "type": "string", "description": "Market public key", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "market_id": { "type": "integer", "description": "Database ID", "example": 0 },
-          "num_outcomes": { "type": "integer", "description": "Number of possible outcomes", "example": 2 },
-          "outcomes": { "type": "array", "description": "Array of outcome objects for easier UI integration", "items": { "$ref": "#/components/schemas/MarketOutcome" } },
           "oracle": { "type": "string", "description": "Oracle pubkey", "example": "3fhVBVTvMEbuLoNtYCH7scjbGX2AiRKEow82KTBs79Nj" },
           "question_id": { "type": "string", "description": "Keccak256 hash of the question", "example": "11d7c73792001369c27b67e9eaebe07daa21c671ccbf51bb03346b07d0d5f998" },
           "condition_id": { "type": "string", "description": "Keccak256 hash of condition", "example": "a53c6da8430bd3a15d821fd1d3a79e468bda71ff42118d48b5191f5ac642cdf6" },
@@ -547,19 +546,15 @@
           "market_name": "Vitalik steps away from Ethereum Foundation",
           "slug": "vitalik-steps-away",
           "description": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?",
-          "definitions": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise.",
-          "banner_image_url": "https://example.com/banner.png",
-          "thumbnail_url": "https://example.com/thumbnail.png",
+          "definition": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise.",
+          "outcomes": ["YES", "NO"],
+          "banner_image_url": "https://picsum.photos/seed/vitalik-steps-away/1200/400",
+          "thumbnail_url": "https://picsum.photos/seed/vitalik-steps-away/200/200",
           "category": "Crypto",
           "tags": ["vitalik", "ethereum", "eth", "foundation"],
           "featured_rank": 0,
           "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
           "market_id": 0,
-          "num_outcomes": 2,
-          "outcomes": [
-            { "id": 0, "name": "YES" },
-            { "id": 1, "name": "NO" }
-          ],
           "oracle": "3fhVBVTvMEbuLoNtYCH7scjbGX2AiRKEow82KTBs79Nj",
           "question_id": "11d7c73792001369c27b67e9eaebe07daa21c671ccbf51bb03346b07d0d5f998",
           "condition_id": "a53c6da8430bd3a15d821fd1d3a79e468bda71ff42118d48b5191f5ac642cdf6",
@@ -663,14 +658,6 @@
               "updated_at": "2026-01-09T20:48:02.278031Z"
             }
           ]
-        }
-      },
-      "MarketOutcome": {
-        "type": "object",
-        "description": "Simple outcome representation for UI integration",
-        "properties": {
-          "id": { "type": "integer", "description": "Outcome index (0-based)", "example": 0 },
-          "name": { "type": "string", "description": "Outcome name (e.g., YES, NO, or custom outcome name)", "example": "YES" }
         }
       },
       "DepositAsset": {
