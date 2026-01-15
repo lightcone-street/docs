@@ -1,17 +1,13 @@
 ---
 title: 'Orderbook Updates'
-description: 'Real-time orderbook data with efficient delta updates'
+description: 'Real-time orderbook data stream'
 ---
 
 ## Overview
 
-The `book_update` channel provides efficient orderbook updates using delta mode:
-1. **Initial snapshot** with full orderbook state
+The `book_update` channel provides efficient orderbook updates:
+1. **Initial snapshot** with full orderbook state on subscribe
 2. **Delta updates** every 50ms with only changed price levels
-
-<Info>
-Delta mode uses ~95% less bandwidth than full snapshots while providing faster updates (50ms vs 200ms).
-</Info>
 
 ## Subscribe
 
@@ -79,7 +75,7 @@ Subsequent messages contain only changed price levels:
 }
 ```
 
-## Delta Update Rules
+## Update Rules
 
 <Note>
 **Apply these rules to maintain your local orderbook:**

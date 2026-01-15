@@ -20,14 +20,15 @@
     {"name": "Orders", "description": "Submit and manage orders"},
     {"name": "Positions", "description": "Query user positions and balances"},
     {"name": "Trades", "description": "Historical trade data"},
-    {"name": "Price History", "description": "OHLCV candlestick price data"}
+    {"name": "Price History", "description": "OHLCV candlestick price data"},
+    {"name": "Admin", "description": "Administrative operations"}
   ],
   "paths": {
     "/markets": {
       "get": {
         "tags": ["Markets"],
         "summary": "List all markets",
-        "description": "Returns all conditional token markets with their deposit mints, conditional mints, orderbooks, and metadata.",
+        "description": "Returns all conditional token markets with their deposit assets, conditional tokens, orderbooks, and metadata.",
         "responses": {
           "200": {
             "description": "List of markets with metadata",
@@ -36,6 +37,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "total": { "type": "integer", "example": 1 },
                     "markets": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/Market" }
@@ -105,8 +107,8 @@
     "/markets/{market_pubkey}/deposit-assets": {
       "get": {
         "tags": ["Markets"],
-        "summary": "Get deposit assets for market",
-        "description": "Returns all deposit assets (collateral tokens) available for a market.",
+        "summary": "Get deposit assets for a market",
+        "description": "Returns all deposit assets (collateral tokens) for a specific market.",
         "parameters": [
           {
             "name": "market_pubkey",
@@ -125,177 +127,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+                    "total": { "type": "integer", "example": 1 },
                     "deposit_assets": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/DepositAsset" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orderbooks/{market_pubkey}/{deposit_asset}/depth": {
-      "get": {
-        "tags": ["Orderbooks"],
-        "summary": "Get orderbook depth",
-        "description": "Returns aggregated bid/ask levels for an orderbook.",
-        "parameters": [
-          {
-            "name": "market_pubkey",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Market public key (base58 encoded)",
-            "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
-          },
-          {
-            "name": "deposit_asset",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Deposit asset address (base58 encoded)",
-            "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Orderbook depth",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/OrderbookDepth" }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orders/submit": {
-      "post": {
-        "tags": ["Orders"],
-        "summary": "Submit order",
-        "description": "Submit a signed order to the exchange. Orders must be signed with the user's Solana wallet using Ed25519.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/SubmitOrderRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Order submitted successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "order_hash": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orders/cancel": {
-      "post": {
-        "tags": ["Orders"],
-        "summary": "Cancel order",
-        "description": "Cancel a specific order by its hash.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Order cancelled successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "success" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/orders/cancel-all": {
-      "post": {
-        "tags": ["Orders"],
-        "summary": "Cancel all orders",
-        "description": "Cancel all orders for a user in a specific orderbook.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/CancelAllOrdersRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "All orders cancelled successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": { "type": "string", "example": "success" },
-                    "cancelled_count": { "type": "integer" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/orders": {
-      "post": {
-        "tags": ["Positions"],
-        "summary": "Get user orders",
-        "description": "Returns all open orders for a user, optionally filtered by market and orderbook.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["user_pubkey"],
-                "properties": {
-                  "user_pubkey": { "type": "string", "description": "User's Solana wallet pubkey", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-                  "market_pubkey": { "type": "string", "description": "Optional: filter by market", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
-                  "orderbook_id": { "type": "string", "description": "Optional: filter by orderbook", "example": "5BNoPgYe_CrhujZLf" }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User's open orders",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "orders": {
-                      "type": "array",
-                      "items": { "$ref": "#/components/schemas/Order" }
                     }
                   }
                 }
@@ -325,7 +161,16 @@
             "description": "User's positions",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPositionsResponse" }
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+                    "positions": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/UserPositionResponse" }
+                    }
+                  }
+                }
               }
             }
           }
@@ -367,6 +212,178 @@
         }
       }
     },
+    "/users/orders": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Get user orders and balances",
+        "description": "Returns all open orders for a user across all markets, along with their current balances.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["user_pubkey"],
+                "properties": {
+                  "user_pubkey": { "type": "string", "description": "User's Solana wallet pubkey", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User's open orders and balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+                    "orders": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Order" }
+                    },
+                    "balances": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/UserMarketBalance" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orderbooks/{market_pubkey}/{deposit_asset}/depth": {
+      "get": {
+        "tags": ["Orderbooks"],
+        "summary": "Get orderbook depth",
+        "description": "Returns aggregated bid/ask levels for an orderbook.",
+        "parameters": [
+          {
+            "name": "market_pubkey",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Market public key (base58 encoded)",
+            "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
+          },
+          {
+            "name": "deposit_asset",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Deposit asset address (base58 encoded)",
+            "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy"
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "schema": { "type": "integer", "default": 0 },
+            "description": "Number of levels to return (0 = all)",
+            "example": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orderbook depth",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OrderbookDepth" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/submit": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Submit order",
+        "description": "Submit a signed order to the exchange. Orders must be signed with the user's Solana wallet using Ed25519.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SubmitOrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SubmitOrderResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/cancel": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Cancel order",
+        "description": "Cancel a specific order by its hash.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CancelOrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/cancel-all": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Cancel all orders",
+        "description": "Cancel all orders for a user.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CancelAllOrdersRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All orders cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "cancelled_count": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/price-history": {
       "get": {
         "tags": ["Price History"],
@@ -399,30 +416,23 @@
           {
             "name": "from",
             "in": "query",
-            "schema": { "type": "integer" },
-            "description": "Start timestamp (Unix seconds)",
-            "example": 1705276800
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "Start timestamp (milliseconds)",
+            "example": 1736456789000
           },
           {
             "name": "to",
             "in": "query",
-            "schema": { "type": "integer" },
-            "description": "End timestamp (Unix seconds)",
-            "example": 1705363200
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "End timestamp (milliseconds)",
+            "example": 1736543189000
           },
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 100 },
-            "description": "Maximum number of candles to return",
+            "schema": { "type": "integer", "default": 1000 },
+            "description": "Max candles to return",
             "example": 100
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "schema": { "type": "integer" },
-            "description": "Pagination cursor (timestamp)",
-            "example": 1705312200
           }
         ],
         "responses": {
@@ -441,43 +451,55 @@
       "get": {
         "tags": ["Trades"],
         "summary": "Get trades",
-        "description": "Returns historical trades for an orderbook or market.",
+        "description": "Returns historical trades for an orderbook.",
         "parameters": [
           {
             "name": "orderbook_id",
             "in": "query",
-            "schema": { "type": "string", "default": "5BNoPgYe_CrhujZLf" },
-            "description": "Filter by orderbook ID",
-            "example": "5BNoPgYe_CrhujZLf"
-          },
-          {
-            "name": "market_pubkey",
-            "in": "query",
+            "required": true,
             "schema": { "type": "string" },
-            "description": "Filter by market public key",
-            "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
+            "description": "Orderbook ID",
+            "example": "5BNoPgYe_CrhujZLf"
           },
           {
             "name": "limit",
             "in": "query",
             "schema": { "type": "integer", "default": 100 },
-            "description": "Maximum number of trades to return",
+            "description": "Max trades to return",
             "example": 50
-          },
-          {
-            "name": "cursor",
-            "in": "query",
-            "schema": { "type": "integer" },
-            "description": "Pagination cursor (trade ID)",
-            "example": 1542
           }
         ],
         "responses": {
           "200": {
-            "description": "Historical trades",
+            "description": "Trade history",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/TradesResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/create-orderbook": {
+      "post": {
+        "tags": ["Admin"],
+        "summary": "Create orderbook",
+        "description": "Create a new orderbook for a market.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateOrderbookRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Orderbook created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CreateOrderbookResponse" }
               }
             }
           }
@@ -493,16 +515,16 @@
           "market_name": { "type": "string", "nullable": true, "description": "Human-readable market name/title", "example": "Vitalik steps away from Ethereum Foundation" },
           "slug": { "type": "string", "nullable": true, "description": "URL-friendly slug", "example": "vitalik-steps-away" },
           "description": { "type": "string", "nullable": true, "description": "Market description", "example": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?" },
-          "rules": { "type": "string", "nullable": true, "description": "Resolution rules", "example": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise." },
-          "banner_image_url": { "type": "string", "nullable": true, "example": null },
-          "thumbnail_url": { "type": "string", "nullable": true, "example": null },
+          "definitions": { "type": "string", "nullable": true, "description": "Resolution rules and definitions", "example": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise." },
+          "banner_image_url": { "type": "string", "nullable": true, "description": "URL to banner image for market display", "example": null },
+          "thumbnail_url": { "type": "string", "nullable": true, "description": "URL to thumbnail image for market display", "example": null },
           "category": { "type": "string", "nullable": true, "example": "Crypto" },
-          "subcategory": { "type": "string", "nullable": true, "example": "Ethereum" },
           "tags": { "type": "array", "items": { "type": "string" }, "example": ["vitalik", "ethereum", "eth", "foundation"] },
-          "featured": { "type": "boolean", "default": false, "example": true },
+          "featured_rank": { "type": "integer", "description": "Featured rank (0 = not featured, 1-10 = higher means more prominent)", "minimum": 0, "maximum": 10, "example": 0 },
           "market_pubkey": { "type": "string", "description": "Market public key", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "market_id": { "type": "integer", "description": "Database ID", "example": 0 },
           "num_outcomes": { "type": "integer", "description": "Number of possible outcomes", "example": 2 },
+          "outcomes": { "type": "array", "description": "Array of outcome objects for easier UI integration", "items": { "$ref": "#/components/schemas/MarketOutcome" } },
           "oracle": { "type": "string", "description": "Oracle pubkey", "example": "3fhVBVTvMEbuLoNtYCH7scjbGX2AiRKEow82KTBs79Nj" },
           "question_id": { "type": "string", "description": "Keccak256 hash of the question", "example": "11d7c73792001369c27b67e9eaebe07daa21c671ccbf51bb03346b07d0d5f998" },
           "condition_id": { "type": "string", "description": "Keccak256 hash of condition", "example": "a53c6da8430bd3a15d821fd1d3a79e468bda71ff42118d48b5191f5ac642cdf6" },
@@ -525,25 +547,130 @@
           "market_name": "Vitalik steps away from Ethereum Foundation",
           "slug": "vitalik-steps-away",
           "description": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?",
+          "definitions": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise.",
+          "banner_image_url": "https://example.com/banner.png",
+          "thumbnail_url": "https://example.com/thumbnail.png",
+          "category": "Crypto",
+          "tags": ["vitalik", "ethereum", "eth", "foundation"],
+          "featured_rank": 0,
           "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
           "market_id": 0,
+          "num_outcomes": 2,
+          "outcomes": [
+            { "id": 0, "name": "YES" },
+            { "id": 1, "name": "NO" }
+          ],
+          "oracle": "3fhVBVTvMEbuLoNtYCH7scjbGX2AiRKEow82KTBs79Nj",
+          "question_id": "11d7c73792001369c27b67e9eaebe07daa21c671ccbf51bb03346b07d0d5f998",
+          "condition_id": "a53c6da8430bd3a15d821fd1d3a79e468bda71ff42118d48b5191f5ac642cdf6",
           "market_status": "Active",
+          "winning_outcome": null,
+          "has_winning_outcome": false,
+          "created_at": "2026-01-09T19:21:40.646201Z",
+          "activated_at": "2026-01-09T19:21:40.999457Z",
+          "settled_at": null,
           "deposit_assets": [
             {
               "display_name": "Lightcone BTC",
               "token_symbol": "lcBTC",
               "symbol": "BTC",
               "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
-              "decimals": 6
+              "id": 1,
+              "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+              "vault": "5VMDUrLacaMVWqiBt8VNKnBfnLhY5kVKVJph6KWcpBvM",
+              "num_outcomes": 2,
+              "decimals": 6,
+              "conditional_tokens": [
+                {
+                  "id": 1,
+                  "outcome_index": 0,
+                  "token_address": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+                  "display_name": "YES-BTC",
+                  "outcome": "YES",
+                  "deposit_symbol": "BTC",
+                  "short_name": "YBTC",
+                  "description": "YES outcome token backed by lcBTC - pays out if market resolves YES",
+                  "decimals": 6,
+                  "created_at": "2026-01-09T19:21:40.789913Z"
+                },
+                {
+                  "id": 2,
+                  "outcome_index": 1,
+                  "token_address": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
+                  "display_name": "NO-BTC",
+                  "outcome": "NO",
+                  "deposit_symbol": "BTC",
+                  "short_name": "NBTC",
+                  "description": "NO outcome token backed by lcBTC - pays out if market resolves NO",
+                  "decimals": 6,
+                  "created_at": "2026-01-09T19:21:40.808645Z"
+                }
+              ]
             },
             {
               "display_name": "Lightcone USDC",
               "token_symbol": "lcUSDC",
               "symbol": "USDC",
-              "deposit_asset": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-              "decimals": 6
+              "deposit_asset": "7SrxsoXjNR7Y8T3koJCt1yV4FrNUumoAUrJExDt6tQez",
+              "id": 2,
+              "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+              "vault": "9sweR1spEHacegYihwCCjonrnnfwqpy9HvZHfBtut4hc",
+              "num_outcomes": 2,
+              "decimals": 6,
+              "conditional_tokens": [
+                {
+                  "id": 3,
+                  "outcome_index": 0,
+                  "token_address": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+                  "display_name": "YES-USDC",
+                  "outcome": "YES",
+                  "deposit_symbol": "USDC",
+                  "short_name": "YUSDC",
+                  "description": "YES outcome token backed by lcUSDC - pays out if market resolves YES",
+                  "decimals": 6,
+                  "created_at": "2026-01-09T19:21:40.903718Z"
+                },
+                {
+                  "id": 4,
+                  "outcome_index": 1,
+                  "token_address": "5FsL5NJJz2QnyLt66CzaA2VMVJBfYiJ9SeXsZ8WFZrah",
+                  "display_name": "NO-USDC",
+                  "outcome": "NO",
+                  "deposit_symbol": "USDC",
+                  "short_name": "NUSDC",
+                  "description": "NO outcome token backed by lcUSDC - pays out if market resolves NO",
+                  "decimals": 6,
+                  "created_at": "2026-01-09T19:21:40.910205Z"
+                }
+              ]
+            }
+          ],
+          "orderbooks": [
+            {
+              "id": 1,
+              "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+              "orderbook_id": "5BNoPgYe_CrhujZLf",
+              "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+              "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+              "outcome_index": 0,
+              "tick_size": 1000,
+              "total_bids": 0,
+              "total_asks": 0,
+              "last_trade_price": null,
+              "last_trade_time": null,
+              "active": true,
+              "created_at": "2026-01-09T20:43:24.107351Z",
+              "updated_at": "2026-01-09T20:48:02.278031Z"
             }
           ]
+        }
+      },
+      "MarketOutcome": {
+        "type": "object",
+        "description": "Simple outcome representation for UI integration",
+        "properties": {
+          "id": { "type": "integer", "description": "Outcome index (0-based)", "example": 0 },
+          "name": { "type": "string", "description": "Outcome name (e.g., YES, NO, or custom outcome name)", "example": "YES" }
         }
       },
       "DepositAsset": {
@@ -566,45 +693,6 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/ConditionalToken" }
           }
-        },
-        "example": {
-          "display_name": "Lightcone BTC",
-          "token_symbol": "lcBTC",
-          "symbol": "BTC",
-          "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
-          "id": 1,
-          "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
-          "vault": "5VMDUrLacaMVWqiBt8VNKnBfnLhY5kVKVJph6KWcpBvM",
-          "num_outcomes": 2,
-          "created_at": "2026-01-09T19:21:40.760798Z",
-          "description": "Lightcone wrapped Bitcoin for trading on conditional markets",
-          "icon_url": "https://metadata.internalcone.com/tokens/lcbtc.png",
-          "metadata_uri": "https://metadata.internalcone.com/tokens/lcbtc.json",
-          "decimals": 6,
-          "conditional_tokens": [
-            {
-              "id": 1,
-              "outcome_index": 0,
-              "token_address": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-              "display_name": "YES-BTC",
-              "outcome": "YES",
-              "deposit_symbol": "BTC",
-              "short_name": "YBTC",
-              "description": "YES outcome token backed by lcBTC",
-              "decimals": 6
-            },
-            {
-              "id": 2,
-              "outcome_index": 1,
-              "token_address": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
-              "display_name": "NO-BTC",
-              "outcome": "NO",
-              "deposit_symbol": "BTC",
-              "short_name": "NBTC",
-              "description": "NO outcome token backed by lcBTC",
-              "decimals": 6
-            }
-          ]
         }
       },
       "ConditionalToken": {
@@ -635,6 +723,7 @@
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "base_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
           "quote_token": { "type": "string", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
+          "outcome_index": { "type": "integer", "nullable": true, "description": "Outcome index of base token (0=YES, 1=NO)", "example": 0 },
           "tick_size": { "type": "integer", "example": 1000 },
           "total_bids": { "type": "integer", "example": 0 },
           "total_asks": { "type": "integer", "example": 0 },
@@ -648,72 +737,81 @@
       "OrderbookDepth": {
         "type": "object",
         "properties": {
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "bids": { "type": "array", "items": { "$ref": "#/components/schemas/PriceLevel" } },
-          "asks": { "type": "array", "items": { "$ref": "#/components/schemas/PriceLevel" } }
-        },
-        "example": {
-          "bids": [
-            { "price": 650000, "quantity": 50000000 },
-            { "price": 640000, "quantity": 120000000 },
-            { "price": 630000, "quantity": 80000000 }
-          ],
-          "asks": [
-            { "price": 660000, "quantity": 45000000 },
-            { "price": 670000, "quantity": 90000000 },
-            { "price": 680000, "quantity": 150000000 }
-          ]
+          "asks": { "type": "array", "items": { "$ref": "#/components/schemas/PriceLevel" } },
+          "best_bid": { "type": "integer", "nullable": true, "example": 650000 },
+          "best_ask": { "type": "integer", "nullable": true, "example": 660000 },
+          "spread": { "type": "integer", "nullable": true, "example": 10000 },
+          "tick_size": { "type": "integer", "example": 1000 }
         }
       },
       "PriceLevel": {
         "type": "object",
         "properties": {
           "price": { "type": "integer", "description": "Price scaled by 1e6", "example": 650000 },
-          "quantity": { "type": "integer", "example": 50000000 }
+          "size": { "type": "integer", "example": 50000000 },
+          "orders": { "type": "integer", "example": 1 }
         }
       },
       "SubmitOrderRequest": {
         "type": "object",
-        "required": ["maker", "nonce", "market", "base_token", "quote_token", "side", "maker_amount", "taker_amount", "signature", "orderbook_id"],
+        "required": ["maker", "nonce", "market_pubkey", "base_token", "quote_token", "side", "maker_amount", "taker_amount", "signature", "orderbook_id"],
         "properties": {
           "maker": { "type": "string", "description": "Solana wallet pubkey", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "nonce": { "type": "integer", "format": "int64", "example": 1736456789000 },
-          "market": { "type": "string", "description": "Market pubkey", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "market_pubkey": { "type": "string", "description": "Market pubkey", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "base_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
           "quote_token": { "type": "string", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
           "side": { "type": "integer", "description": "0 = BID (buy base), 1 = ASK (sell base)", "example": 0 },
           "maker_amount": { "type": "integer", "format": "int64", "description": "Amount maker gives (in base units)", "example": 350000 },
           "taker_amount": { "type": "integer", "format": "int64", "description": "Amount maker wants (in base units)", "example": 650000 },
           "expiration": { "type": "integer", "format": "int64", "default": 0, "description": "Unix timestamp, 0 = no expiration", "example": 0 },
-          "signature": { "type": "string", "description": "Base58 Ed25519 signature", "example": "5KJhg7Ybx8qF9gXZvVmJkLpWvN3cDrMhYeAqRs7TuBn4mZ8HwK2jXyNfPLbQdCeRgVmHsJkYpN9tUoWxZcFvGhR" },
+          "signature": { "type": "string", "description": "Hex-encoded Ed25519 signature", "example": "01020304..." },
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" }
+        }
+      },
+      "SubmitOrderResponse": {
+        "type": "object",
+        "properties": {
+          "order_hash": { "type": "string", "example": "0xabc123def456..." },
+          "status": { "type": "string", "example": "accepted" },
+          "remaining": { "type": "integer", "example": 350000 },
+          "filled": { "type": "integer", "example": 0 },
+          "fills": { "type": "array", "items": { "type": "object" } }
         }
       },
       "CancelOrderRequest": {
         "type": "object",
         "required": ["order_hash", "maker"],
         "properties": {
-          "order_hash": { "type": "string", "example": "0xabc123def456789012345678901234567890123456789012345678901234abcd" },
+          "order_hash": { "type": "string", "example": "0xabc123def456..." },
           "maker": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" }
         }
       },
       "CancelAllOrdersRequest": {
         "type": "object",
-        "required": ["maker", "orderbook_id"],
+        "required": ["user_pubkey"],
         "properties": {
-          "maker": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" }
+          "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+          "market_pubkey": { "type": "string", "nullable": true, "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" }
         }
       },
       "Order": {
         "type": "object",
         "properties": {
           "order_hash": { "type": "string", "example": "0xabc123def456789012345678901234567890123456789012345678901234abcd" },
-          "maker": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-          "side": { "type": "integer", "example": 0 },
-          "price": { "type": "integer", "example": 650000 },
-          "original_quantity": { "type": "integer", "example": 100000000 },
-          "remaining_quantity": { "type": "integer", "example": 75000000 },
-          "status": { "type": "string", "example": "Open" }
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "side": { "type": "integer", "description": "0 for Bid, 1 for Ask", "example": 0 },
+          "maker_amount": { "type": "integer", "example": 1000000 },
+          "taker_amount": { "type": "integer", "example": 600000 },
+          "remaining": { "type": "integer", "example": 1000000 },
+          "filled": { "type": "integer", "example": 0 },
+          "price": { "type": "integer", "example": 600000 },
+          "created_at": { "type": "integer", "format": "int64", "example": 1736456789000 },
+          "expiration": { "type": "integer", "format": "int64", "example": 0 }
         }
       },
       "UserPositionsResponse": {
@@ -735,62 +833,109 @@
       "UserPositionResponse": {
         "type": "object",
         "properties": {
+          "id": { "type": "integer", "example": 1 },
           "position_pubkey": { "type": "string", "example": "Pos1t1on111111111111111111111111111111111111" },
           "owner": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
-          "deposit_asset": { "type": "string", "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy" },
-          "outcomes": { "type": "array", "items": { "$ref": "#/components/schemas/OutcomeBalance" } }
+          "outcomes": { "type": "array", "items": { "$ref": "#/components/schemas/OutcomeBalance" } },
+          "created_at": { "type": "string", "format": "date-time", "example": "2026-01-09T19:21:40.999457Z" },
+          "updated_at": { "type": "string", "format": "date-time", "example": "2026-01-09T19:21:40.999457Z" }
         }
       },
       "OutcomeBalance": {
         "type": "object",
         "properties": {
           "outcome_index": { "type": "integer", "example": 0 },
-          "mint": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
-          "idle": { "type": "integer", "description": "Available balance", "example": 500000 },
-          "on_book": { "type": "integer", "description": "Locked in orders", "example": 250000 }
+          "conditional_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
+          "balance": { "type": "integer", "example": 1000000 },
+          "balance_idle": { "type": "integer", "description": "Available balance", "example": 500000 },
+          "balance_on_book": { "type": "integer", "description": "Locked in orders", "example": 500000 }
+        }
+      },
+      "UserMarketBalance": {
+        "type": "object",
+        "properties": {
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "deposit_asset": { "type": "string", "example": "GKDDjok7y1B6beJNCkusGYbE1tUhtahdMipvzapVZdLe" },
+          "outcomes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "outcome_index": { "type": "integer", "example": 0 },
+                "conditional_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
+                "idle": { "type": "integer", "example": 500000 },
+                "on_book": { "type": "integer", "example": 100000 }
+              }
+            }
+          }
         }
       },
       "PriceHistoryResponse": {
         "type": "object",
         "properties": {
-          "candles": { "type": "array", "items": { "$ref": "#/components/schemas/Candle" } },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "resolution": { "type": "string", "example": "1h" },
+          "include_ohlcv": { "type": "boolean", "example": false },
+          "prices": { "type": "array", "items": { "$ref": "#/components/schemas/PriceSnapshot" } },
           "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "example": 1705312200 }
+          "next_cursor": { "type": "integer", "format": "int64", "example": 1705312200000 }
         }
       },
-      "Candle": {
+      "PriceSnapshot": {
         "type": "object",
+        "description": "Midpoint price snapshot, optionally including full OHLCV data",
         "properties": {
-          "timestamp": { "type": "integer", "description": "Unix timestamp (seconds)", "example": 1705312800 },
-          "midpoint": { "type": "integer", "description": "Midpoint price between best bid and ask (scaled by 1e6)", "example": 657500 },
-          "open": { "type": "integer", "description": "Opening price (scaled by 1e6, only if include_ohlcv=true)", "example": 650000, "nullable": true },
-          "high": { "type": "integer", "description": "Highest price (scaled by 1e6, only if include_ohlcv=true)", "example": 670000, "nullable": true },
-          "low": { "type": "integer", "description": "Lowest price (scaled by 1e6, only if include_ohlcv=true)", "example": 640000, "nullable": true },
-          "close": { "type": "integer", "description": "Closing price (scaled by 1e6, only if include_ohlcv=true)", "example": 665000, "nullable": true },
-          "volume": { "type": "integer", "description": "Total volume traded (only if include_ohlcv=true)", "example": 125000000, "nullable": true }
-        },
-        "example": {
-          "timestamp": 1705312800,
-          "midpoint": 657500
-        }
-      },
-      "TradesResponse": {
-        "type": "object",
-        "properties": {
-          "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
-          "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "example": 1542 }
+          "t": { "type": "integer", "description": "Unix timestamp (milliseconds)", "example": 1705312800000 },
+          "m": { "type": "integer", "description": "Midpoint price (scaled by 1e6)", "example": 657500 },
+          "o": { "type": "integer", "description": "Opening price (only if include_ohlcv=true)", "example": 650000, "nullable": true },
+          "h": { "type": "integer", "description": "High price (only if include_ohlcv=true)", "example": 665000, "nullable": true },
+          "l": { "type": "integer", "description": "Low price (only if include_ohlcv=true)", "example": 645000, "nullable": true },
+          "c": { "type": "integer", "description": "Closing price (only if include_ohlcv=true)", "example": 660000, "nullable": true },
+          "v": { "type": "integer", "description": "Volume (only if include_ohlcv=true)", "example": 5000000, "nullable": true },
+          "bb": { "type": "integer", "description": "Best bid (only if include_ohlcv=true)", "example": 655000, "nullable": true },
+          "ba": { "type": "integer", "description": "Best ask (only if include_ohlcv=true)", "example": 660000, "nullable": true }
         }
       },
       "Trade": {
         "type": "object",
         "properties": {
-          "id": { "type": "integer", "example": 1543 },
-          "price": { "type": "integer", "description": "Trade price (scaled by 1e6)", "example": 655000 },
-          "quantity": { "type": "integer", "description": "Trade quantity in base units", "example": 10000000 },
-          "side": { "type": "string", "description": "Taker side: 'buy' or 'sell'", "example": "buy" },
-          "timestamp": { "type": "string", "format": "date-time", "example": "2025-06-15T14:23:45Z" }
+          "id": { "type": "integer", "example": 1234 },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "taker_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+          "maker_pubkey": { "type": "string", "example": "9MWB6iMkyf1JPPXBgkYy4tUX4f9nGGjkNv6Bw4kbHeUc" },
+          "side": { "type": "string", "enum": ["bid", "ask"], "example": "bid" },
+          "price": { "type": "integer", "example": 650000 },
+          "size": { "type": "integer", "example": 1000000 },
+          "executed_at": { "type": "integer", "format": "int64", "example": 1736456789000 }
+        }
+      },
+      "TradesResponse": {
+        "type": "object",
+        "properties": {
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
+          "has_more": { "type": "boolean", "example": true },
+          "next_cursor": { "type": "integer", "format": "int64", "example": 1233 }
+        }
+      },
+      "CreateOrderbookRequest": {
+        "type": "object",
+        "required": ["market_pubkey", "base_token", "quote_token"],
+        "properties": {
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "base_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
+          "quote_token": { "type": "string", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
+          "tick_size": { "type": "integer", "default": 1000 }
+        }
+      },
+      "CreateOrderbookResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "message": { "type": "string", "example": "Orderbook created successfully" }
         }
       }
     }
