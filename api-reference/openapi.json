@@ -50,19 +50,19 @@
         }
       }
     },
-    "/markets/by-id/{market_id}": {
+    "/markets/by-slug/{slug}": {
       "get": {
         "tags": ["Markets"],
-        "summary": "Get market by ID",
-        "description": "Returns a single market by its database ID.",
+        "summary": "Get market by slug",
+        "description": "Returns a single market by its URL-friendly slug.",
         "parameters": [
           {
-            "name": "market_id",
+            "name": "slug",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" },
-            "description": "Market database ID",
-            "example": 0
+            "schema": { "type": "string" },
+            "description": "Market slug",
+            "example": "vitalik-steps-away"
           }
         ],
         "responses": {
