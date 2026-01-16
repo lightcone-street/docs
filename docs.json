@@ -55,7 +55,7 @@
                 "group": "Markets",
                 "pages": [
                   "api-reference/endpoint/get-markets",
-                  "api-reference/endpoint/get-market-by-id",
+                  "api-reference/endpoint/get-market-by-slug",
                   "api-reference/endpoint/get-market-by-pubkey",
                   "api-reference/endpoint/get-deposit-mints"
                 ]
