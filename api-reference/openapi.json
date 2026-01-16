@@ -28,7 +28,7 @@
       "get": {
         "tags": ["Markets"],
         "summary": "List all markets",
-        "description": "Returns all conditional token markets with their deposit assets, conditional tokens, orderbooks, and metadata.",
+        "description": "Returns all markets",
         "responses": {
           "200": {
             "description": "List of markets with metadata",
@@ -54,7 +54,7 @@
       "get": {
         "tags": ["Markets"],
         "summary": "Get market by slug",
-        "description": "Returns a single market by its URL-friendly slug.",
+        "description": "Returns a single market by its slug.",
         "parameters": [
           {
             "name": "slug",
@@ -108,7 +108,7 @@
       "get": {
         "tags": ["Markets"],
         "summary": "Get deposit assets for a market",
-        "description": "Returns all deposit assets (collateral tokens) for a specific market.",
+        "description": "Returns all supported collateral tokens for a market.",
         "parameters": [
           {
             "name": "market_pubkey",
@@ -260,7 +260,7 @@
       "get": {
         "tags": ["Market Data"],
         "summary": "Get orderbook snapshot",
-        "description": "Returns current bid/ask levels and metadata for a specific orderbook.",
+        "description": "Returns bids and asks for a orderbook.",
         "parameters": [
           {
             "name": "orderbook_id",
@@ -294,7 +294,7 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Submit order",
-        "description": "Submit a signed order to the exchange. Orders must be signed with the user's Solana wallet using Ed25519.",
+        "description": "Create a signed order to the exchange",
         "requestBody": {
           "required": true,
           "content": {
@@ -443,7 +443,7 @@
       "get": {
         "tags": ["Trades"],
         "summary": "Get trades",
-        "description": "Returns historical trades for an orderbook.",
+        "description": "Returns historical trades for a conditional token pair.",
         "parameters": [
           {
             "name": "orderbook_id",

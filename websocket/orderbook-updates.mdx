@@ -31,7 +31,7 @@ The `book_update` channel provides efficient orderbook updates:
 
 ### Initial Snapshot
 
-The first message contains the full orderbook state with `is_snapshot: true`:
+The first message contains the full orderbook state with `is_snapshot: true` and `seq: 1`:
 
 ```json
 {
@@ -41,6 +41,7 @@ The first message contains the full orderbook state with `is_snapshot: true`:
     "orderbook_id": "5BNoPgYe_CrhujZLf",
     "timestamp": "2026-01-09T20:43:24Z",
     "is_snapshot": true,
+    "seq": 1,
     "bids": [
       {"side": "bid", "price": 650000, "size": 1000000},
       {"side": "bid", "price": 640000, "size": 2000000}
@@ -55,7 +56,7 @@ The first message contains the full orderbook state with `is_snapshot: true`:
 
 ### Delta Updates
 
-Subsequent messages contain only changed price levels:
+Subsequent messages contain only changed price levels with a sequence number:
 
 ```json
 {
@@ -64,6 +65,7 @@ Subsequent messages contain only changed price levels:
   "data": {
     "orderbook_id": "5BNoPgYe_CrhujZLf",
     "timestamp": "2026-01-09T20:43:24.050Z",
+    "seq": 2,
     "bids": [
       {"side": "bid", "price": 650000, "size": 1500000},
       {"side": "bid", "price": 640000, "size": 0}
@@ -85,6 +87,17 @@ Subsequent messages contain only changed price levels:
 - `size > 0` → Update or insert that price level
 </Note>
 
+<Warning>
+**Sequence Number Validation:**
+
+Each update includes a `seq` field that increments by 1 for each message. Use this to detect missed updates:
+
+- **Sequential (`seq: 1, 2, 3...`)**: Your connection is healthy, apply updates normally
+- **Gap detected (`seq: 1, 2, 5...`)**: You missed messages! Reconnect immediately to get a fresh snapshot
+
+If you detect a gap in the sequence, your local orderbook is likely stale and out of sync. The safest approach is to disconnect and resubscribe to receive a new snapshot with `seq: 1`.
+</Warning>
+
 ## Response Fields
 
 <ResponseField name="orderbook_id" type="string">
@@ -93,6 +106,10 @@ Subsequent messages contain only changed price levels:
 
 <ResponseField name="timestamp" type="string">
   ISO 8601 timestamp of the update
+</ResponseField>
+
+<ResponseField name="seq" type="integer">
+  Sequence number for this update. Increments by 1 for each message. Use this to detect missed updates - if you see a gap in the sequence, reconnect immediately.
 </ResponseField>
 
 <ResponseField name="is_snapshot" type="boolean">
@@ -123,12 +140,23 @@ Subsequent messages contain only changed price levels:
 
 ```javascript
 class OrderbookManager {
-  constructor() {
+  constructor(reconnectCallback) {
     this.bids = new Map(); // price -> size
     this.asks = new Map();
+    this.lastSeq = 0;
+    this.reconnectCallback = reconnectCallback;
   }
 
   handleUpdate(data) {
+    // Check for sequence gaps (missed messages)
+    if (this.lastSeq > 0 && data.seq !== this.lastSeq + 1) {
+      console.error(`Sequence gap detected! Expected ${this.lastSeq + 1}, got ${data.seq}`);
+      this.reconnectCallback(); // Reconnect to get fresh snapshot
+      return;
+    }
+    
+    this.lastSeq = data.seq;
+    
     if (data.is_snapshot) {
       // Full snapshot - replace everything
       this.bids.clear();
@@ -169,6 +197,14 @@ class OrderbookManager {
     return Math.min(...this.asks.keys());
   }
 }
+
+// Usage
+const manager = new OrderbookManager(() => {
+  // Reconnect logic
+  console.log('Reconnecting due to sequence gap...');
+  ws.close();
+  connectWebSocket();
+});
 ```
 
 ## Unsubscribe
