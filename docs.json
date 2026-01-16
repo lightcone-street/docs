@@ -63,7 +63,7 @@
               {
                 "group": "Market Data",
                 "pages": [
-                  "api-reference/endpoint/get-orderbook-depth",
+                  "api-reference/endpoint/get-orderbook",
                   "api-reference/endpoint/get-price-history",
                   "api-reference/endpoint/get-trades"
                 ]

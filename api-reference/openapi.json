@@ -256,27 +256,19 @@
         }
       }
     },
-    "/orderbooks/{market_pubkey}/{deposit_asset}/depth": {
+    "/orderbook/{orderbook_id}": {
       "get": {
-        "tags": ["Orderbooks"],
-        "summary": "Get orderbook depth",
-        "description": "Returns aggregated bid/ask levels for an orderbook.",
+        "tags": ["Market Data"],
+        "summary": "Get orderbook snapshot",
+        "description": "Returns current bid/ask levels and metadata for a specific orderbook.",
         "parameters": [
           {
-            "name": "market_pubkey",
+            "name": "orderbook_id",
             "in": "path",
             "required": true,
             "schema": { "type": "string" },
-            "description": "Market public key (base58 encoded)",
-            "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL"
-          },
-          {
-            "name": "deposit_asset",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "Deposit asset address (base58 encoded)",
-            "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy"
+            "description": "Unique orderbook identifier",
+            "example": "5BNoPgYe_CrhujZLf"
           },
           {
             "name": "depth",
@@ -288,7 +280,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Orderbook depth",
+            "description": "Orderbook snapshot",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/OrderbookDepth" }
