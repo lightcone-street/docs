@@ -516,7 +516,7 @@
           "slug": { "type": "string", "nullable": true, "description": "URL-friendly slug", "example": "vitalik-steps-away" },
           "description": { "type": "string", "nullable": true, "description": "Market description", "example": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?" },
           "definition": { "type": "string", "nullable": true, "description": "Resolution rules and definition", "example": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise." },
-          "outcomes": { "type": "array", "items": { "type": "string" }, "description": "Outcome names (index is the outcome ID)", "example": ["YES", "NO"] },
+          "outcomes": { "type": "array", "items": { "$ref": "#/components/schemas/OutcomeResponse" }, "description": "Market outcomes with names and images" },
           "banner_image_url": { "type": "string", "nullable": true, "description": "URL to banner image for market display", "example": null },
           "thumbnail_url": { "type": "string", "nullable": true, "description": "URL to thumbnail image for market display", "example": null },
           "category": { "type": "string", "nullable": true, "example": "Crypto" },
@@ -547,7 +547,10 @@
           "slug": "vitalik-steps-away",
           "description": "Will Vitalik Buterin step away from his leadership role at the Ethereum Foundation?",
           "definition": "Resolves YES if Vitalik publicly announces he is stepping down from or significantly reducing his role at the Ethereum Foundation before resolution date. Resolves NO otherwise.",
-          "outcomes": ["YES", "NO"],
+          "outcomes": [
+            { "index": 0, "name": "YES", "thumbnail_url": "https://picsum.photos/seed/yes-vitalik/400/400" },
+            { "index": 1, "name": "NO", "thumbnail_url": "https://picsum.photos/seed/no-vitalik/400/400" }
+          ],
           "banner_image_url": "https://picsum.photos/seed/vitalik-steps-away/1200/400",
           "thumbnail_url": "https://picsum.photos/seed/vitalik-steps-away/200/200",
           "category": "Crypto",
@@ -659,6 +662,15 @@
             }
           ]
         }
+      },
+      "OutcomeResponse": {
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer", "description": "Outcome index/ID", "example": 0 },
+          "name": { "type": "string", "description": "Outcome name", "example": "YES" },
+          "thumbnail_url": { "type": "string", "nullable": true, "description": "Thumbnail image URL for outcome display", "example": "https://picsum.photos/seed/yes-vitalik/400/400" }
+        },
+        "required": ["index", "name"]
       },
       "DepositAsset": {
         "type": "object",
