@@ -25,20 +25,26 @@
     "tabs": [
       {
         "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting Started",
-            "pages": [
-              "guides/getting-started/enter-the-lightcone"
-            ]
-          },
+        "pages": [
+          "guides/getting-started/enter-the-lightcone",
+          "guides/getting-started/enter-the-lightcone-copied-2",
+          "guides/getting-started/enter-the-lightcone-copied-1",
           {
             "group": "About Lightcone",
             "pages": [
               "guides/about-lightcone/test",
               "guides/about-lightcone/test-copied-1",
               "guides/about-lightcone/test-copied-2",
-              "guides/about-lightcone/test-copied-3"
+              "guides/about-lightcone/test-copied-3",
+              {
+                "group": "Misc",
+                "pages": [
+                  "guides/about-lightcone/misc/untitled-page-1",
+                  "guides/about-lightcone/misc/terminology",
+                  "guides/about-lightcone/misc/security-audits",
+                  "guides/about-lightcone/misc/untitled-page"
+                ]
+              }
             ]
           }
         ]
