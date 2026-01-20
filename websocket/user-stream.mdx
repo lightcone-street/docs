@@ -13,6 +13,8 @@ The `user` channel provides a unified stream of all user-specific events:
 
 Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
 
+All prices and amounts are returned as **decimal strings** (e.g., `"0.65"`, `"1.5"`) matching the REST API format.
+
 <Warning>
 **Authentication Required**: The user stream requires authentication. You must include a valid `auth_token` cookie when connecting to the WebSocket. See [WebSocket Authentication](/websocket/authentication) for details.
 </Warning>
@@ -53,31 +55,33 @@ Immediately after subscribing, you receive the user's current state:
       {
         "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
         "orderbook_id": "5BNoPgYe_CrhujZLf",
-        "order_id": 12345,
-        "side": "bid",
-        "price": 650000,
-        "size": 1000000,
-        "original_size": 2000000,
-        "filled_size": 1000000,
-        "created_at": 1736456789000
+        "order_hash": "0xabc123...",
+        "side": 0,
+        "maker_amount": "2.000000",
+        "taker_amount": "1.300000",
+        "remaining": "1.000000",
+        "filled": "1.000000",
+        "price": "0.650000",
+        "created_at": 1736456789000,
+        "expiration": 0
       }
     ],
     "balances": {
-      "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL_4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy": {
+      "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL:4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy": {
         "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
         "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
         "outcomes": [
           {
             "outcome_index": 0,
             "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": 5000000,
-            "on_book": 2000000
+            "idle": "5.000000",
+            "on_book": "2.000000"
           },
           {
             "outcome_index": 1,
             "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": 3000000,
-            "on_book": 0
+            "idle": "3.000000",
+            "on_book": "0.000000"
           }
         ]
       }
@@ -88,9 +92,9 @@ Immediately after subscribing, you receive the user's current state:
 
 ## Order Updates
 
-All order state changes are sent as `order_update` events. The `size` field indicates the order state:
-- `size > 0`: Order is still open with that amount on the book
-- `size == 0`: Order is no longer active (fully filled or cancelled)
+All order state changes are sent as `order_update` events. The `remaining` field indicates the order state:
+- `remaining > "0"`: Order is still open with that amount on the book
+- `remaining == "0.000000"`: Order is no longer active (fully filled or cancelled)
 
 ### Order Filled
 
@@ -104,12 +108,12 @@ All order state changes are sent as `order_update` events. The `size` field indi
     "timestamp": "2026-01-09T20:43:24.123Z",
     "event_type": "order_update",
     "order": {
-      "order_id": 12345,
-      "price": 650000,
-      "size": 0,
-      "original_size": 1000000,
-      "filled_size": 1000000,
-      "side": "bid",
+      "order_hash": "0xabc123...",
+      "price": "0.650000",
+      "fill_amount": "1.000000",
+      "remaining": "0.000000",
+      "filled": "1.000000",
+      "side": 0,
       "is_maker": false,
       "created_at": 1736456789000,
       "balance": {
@@ -117,14 +121,14 @@ All order state changes are sent as `order_update` events. The `size` field indi
           {
             "outcome_index": 0,
             "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": 1000000,
-            "on_book": 0
+            "idle": "1.000000",
+            "on_book": "0.000000"
           },
           {
             "outcome_index": 1,
             "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": 0,
-            "on_book": 0
+            "idle": "0.000000",
+            "on_book": "0.000000"
           }
         ]
       }
@@ -145,12 +149,12 @@ All order state changes are sent as `order_update` events. The `size` field indi
     "timestamp": "2026-01-09T20:43:24.123Z",
     "event_type": "order_update",
     "order": {
-      "order_id": 12340,
-      "price": 650000,
-      "size": 300000,
-      "original_size": 500000,
-      "filled_size": 200000,
-      "side": "ask",
+      "order_hash": "0xdef456...",
+      "price": "0.650000",
+      "fill_amount": "0.200000",
+      "remaining": "0.300000",
+      "filled": "0.200000",
+      "side": 1,
       "is_maker": true,
       "created_at": 1736456700000,
       "balance": {
@@ -158,55 +162,14 @@ All order state changes are sent as `order_update` events. The `size` field indi
           {
             "outcome_index": 0,
             "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": 0,
-            "on_book": 300000
+            "idle": "0.000000",
+            "on_book": "0.300000"
           },
           {
             "outcome_index": 1,
             "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": 200000,
-            "on_book": 0
-          }
-        ]
-      }
-    }
-  }
-}
-```
-
-### New Order Placed
-
-```json
-{
-  "type": "user",
-  "version": 0.1,
-  "data": {
-    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
-    "orderbook_id": "5BNoPgYe_CrhujZLf",
-    "timestamp": "2026-01-09T20:43:24.789Z",
-    "event_type": "order_update",
-    "order": {
-      "order_id": 12346,
-      "price": 640000,
-      "size": 500000,
-      "original_size": 500000,
-      "filled_size": 0,
-      "side": "bid",
-      "is_maker": true,
-      "created_at": 1736456789789,
-      "balance": {
-        "outcomes": [
-          {
-            "outcome_index": 0,
-            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": 500000,
-            "on_book": 0
-          },
-          {
-            "outcome_index": 1,
-            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": 0,
-            "on_book": 500000
+            "idle": "0.200000",
+            "on_book": "0.000000"
           }
         ]
       }
@@ -232,14 +195,14 @@ Deposits and withdrawals trigger `balance_update` events:
         {
           "outcome_index": 0,
           "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-          "idle": 5000000,
-          "on_book": 0
+          "idle": "5.000000",
+          "on_book": "0.000000"
         },
         {
           "outcome_index": 1,
           "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-          "idle": 5000000,
-          "on_book": 0
+          "idle": "5.000000",
+          "on_book": "0.000000"
         }
       ]
     },
@@ -252,28 +215,28 @@ Deposits and withdrawals trigger `balance_update` events:
 
 ### Order Fields
 
-<ResponseField name="order_id" type="integer">
-  Unique order identifier
+<ResponseField name="order_hash" type="string">
+  Keccak256 hash of the signed order (hex-encoded)
 </ResponseField>
 
-<ResponseField name="price" type="integer">
-  Order price (scaled by 1e6)
+<ResponseField name="price" type="string">
+  Order price as decimal string (e.g., `"0.650000"`)
 </ResponseField>
 
-<ResponseField name="size" type="integer">
-  **Current open size** on the book (0 = order no longer active)
+<ResponseField name="fill_amount" type="string">
+  Amount filled in this specific event as decimal string
 </ResponseField>
 
-<ResponseField name="original_size" type="integer">
-  **Original size** when order was placed
+<ResponseField name="remaining" type="string">
+  Remaining maker_amount on the book as decimal string (`"0.000000"` = order no longer active)
 </ResponseField>
 
-<ResponseField name="filled_size" type="integer">
-  **Total amount filled** (convenience field: original_size - size)
+<ResponseField name="filled" type="string">
+  Total amount filled so far as decimal string
 </ResponseField>
 
-<ResponseField name="side" type="string">
-  Order side: `"bid"` or `"ask"`
+<ResponseField name="side" type="integer">
+  Order side: `0` = BUY, `1` = SELL
 </ResponseField>
 
 <ResponseField name="is_maker" type="boolean">
@@ -298,12 +261,12 @@ Deposits and withdrawals trigger `balance_update` events:
   Conditional token mint address for this outcome
 </ResponseField>
 
-<ResponseField name="outcomes[].idle" type="integer">
-  Available tokens (not locked in orders)
+<ResponseField name="outcomes[].idle" type="string">
+  Available tokens as decimal string (not locked in orders)
 </ResponseField>
 
-<ResponseField name="outcomes[].on_book" type="integer">
-  Tokens locked in resting orders
+<ResponseField name="outcomes[].on_book" type="string">
+  Tokens locked in resting orders as decimal string
 </ResponseField>
 
 ## Event Types Summary
@@ -325,4 +288,3 @@ Deposits and withdrawals trigger `balance_update` events:
   }
 }
 ```
-

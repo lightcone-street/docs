@@ -164,11 +164,15 @@ When creating an order, the following fields are required:
 | `base_token` | string | Base token address |
 | `quote_token` | string | Quote token address |
 | `side` | integer | 0 = BID (buy), 1 = ASK (sell) |
-| `maker_amount` | integer | Amount you're providing |
-| `taker_amount` | integer | Amount you want to receive |
+| `maker_amount` | integer | Raw integer amount (unscaled) |
+| `taker_amount` | integer | Raw integer amount (unscaled) |
 | `expiration` | integer | Unix timestamp (0 = no expiration) |
 | `signature` | string | Base58-encoded Ed25519 signature |
 | `orderbook_id` | string | Orderbook identifier |
+
+<Note>
+`maker_amount` and `taker_amount` must be raw integers (not scaled decimals) because they are part of the signed hash. API responses return scaled decimal strings for display, but order submission uses raw values.
+</Note>
 
 ## Security Best Practices
 

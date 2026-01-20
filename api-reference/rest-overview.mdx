@@ -26,6 +26,28 @@ Lightcone uses a hybrid CLOB (Central Limit Order Book) architecture:
 - **On-chain settlement**: Trades are executed on Solana for security
 - **Real-time updates**: WebSocket streams for orderbook and trade data
 
+## Decimal Format
+
+All numeric values (prices, sizes, balances, volumes) are returned as **decimal strings**:
+
+```json
+{
+  "price": "0.650000",
+  "size": "1.500000",
+  "best_bid": "0.640000",
+  "best_ask": "0.660000"
+}
+```
+
+This provides:
+- **Consistency** with industry standards (Binance, Kraken, Hyperliquid)
+- **Ready-to-display** values without client-side scaling
+- **Precision** without floating point issues
+
+<Note>
+**Order submission** still uses raw integers for `maker_amount` and `taker_amount` as these are part of the signed message hash.
+</Note>
+
 ## Pagination
 
 Endpoints that return lists support cursor-based pagination:

@@ -732,17 +732,25 @@
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "bids": { "type": "array", "items": { "$ref": "#/components/schemas/PriceLevel" } },
           "asks": { "type": "array", "items": { "$ref": "#/components/schemas/PriceLevel" } },
-          "best_bid": { "type": "integer", "nullable": true, "example": 650000 },
-          "best_ask": { "type": "integer", "nullable": true, "example": 660000 },
-          "spread": { "type": "integer", "nullable": true, "example": 10000 },
-          "tick_size": { "type": "integer", "example": 1000 }
+          "best_bid": { "type": "string", "nullable": true, "description": "Best bid price as decimal string", "example": "0.650000" },
+          "best_ask": { "type": "string", "nullable": true, "description": "Best ask price as decimal string", "example": "0.660000" },
+          "spread": { "type": "string", "nullable": true, "description": "Spread as decimal string", "example": "0.010000" },
+          "tick_size": { "type": "integer", "example": 1000 },
+          "decimals": {
+            "type": "object",
+            "description": "Decimal places for price and size",
+            "properties": {
+              "price": { "type": "integer", "example": 6 },
+              "size": { "type": "integer", "example": 6 }
+            }
+          }
         }
       },
       "PriceLevel": {
         "type": "object",
         "properties": {
-          "price": { "type": "integer", "description": "Price scaled by 1e6", "example": 650000 },
-          "size": { "type": "integer", "example": 50000000 },
+          "price": { "type": "string", "description": "Price as decimal string", "example": "0.650000" },
+          "size": { "type": "string", "description": "Size as decimal string", "example": "50.000000" },
           "orders": { "type": "integer", "example": 1 }
         }
       },
@@ -796,11 +804,11 @@
           "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "side": { "type": "integer", "description": "0 for Bid, 1 for Ask", "example": 0 },
-          "maker_amount": { "type": "integer", "example": 1000000 },
-          "taker_amount": { "type": "integer", "example": 600000 },
-          "remaining": { "type": "integer", "example": 1000000 },
-          "filled": { "type": "integer", "example": 0 },
-          "price": { "type": "integer", "example": 600000 },
+          "maker_amount": { "type": "string", "description": "Maker amount as decimal string", "example": "1.000000" },
+          "taker_amount": { "type": "string", "description": "Taker amount as decimal string", "example": "0.600000" },
+          "remaining": { "type": "string", "description": "Remaining amount as decimal string", "example": "1.000000" },
+          "filled": { "type": "string", "description": "Filled amount as decimal string", "example": "0.000000" },
+          "price": { "type": "string", "description": "Order price as decimal string", "example": "0.600000" },
           "created_at": { "type": "integer", "format": "int64", "example": 1736456789000 },
           "expiration": { "type": "integer", "format": "int64", "example": 0 }
         }
@@ -838,9 +846,9 @@
         "properties": {
           "outcome_index": { "type": "integer", "example": 0 },
           "conditional_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
-          "balance": { "type": "integer", "example": 1000000 },
-          "balance_idle": { "type": "integer", "description": "Available balance", "example": 500000 },
-          "balance_on_book": { "type": "integer", "description": "Locked in orders", "example": 500000 }
+          "balance": { "type": "string", "description": "Total balance as decimal string", "example": "1.000000" },
+          "balance_idle": { "type": "string", "description": "Available balance as decimal string", "example": "0.500000" },
+          "balance_on_book": { "type": "string", "description": "Locked in orders as decimal string", "example": "0.500000" }
         }
       },
       "UserMarketBalance": {
@@ -855,8 +863,8 @@
               "properties": {
                 "outcome_index": { "type": "integer", "example": 0 },
                 "conditional_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
-                "idle": { "type": "integer", "example": 500000 },
-                "on_book": { "type": "integer", "example": 100000 }
+                "idle": { "type": "string", "description": "Available balance as decimal string", "example": "0.500000" },
+                "on_book": { "type": "string", "description": "Locked in orders as decimal string", "example": "0.100000" }
               }
             }
           }
@@ -875,17 +883,17 @@
       },
       "PriceSnapshot": {
         "type": "object",
-        "description": "Midpoint price snapshot, optionally including full OHLCV data",
+        "description": "Midpoint price snapshot, optionally including full OHLCV data. All prices/volumes are decimal strings.",
         "properties": {
           "t": { "type": "integer", "description": "Unix timestamp (milliseconds)", "example": 1705312800000 },
-          "m": { "type": "integer", "description": "Midpoint price (scaled by 1e6)", "example": 657500 },
-          "o": { "type": "integer", "description": "Opening price (only if include_ohlcv=true)", "example": 650000, "nullable": true },
-          "h": { "type": "integer", "description": "High price (only if include_ohlcv=true)", "example": 665000, "nullable": true },
-          "l": { "type": "integer", "description": "Low price (only if include_ohlcv=true)", "example": 645000, "nullable": true },
-          "c": { "type": "integer", "description": "Closing price (only if include_ohlcv=true)", "example": 660000, "nullable": true },
-          "v": { "type": "integer", "description": "Volume (only if include_ohlcv=true)", "example": 5000000, "nullable": true },
-          "bb": { "type": "integer", "description": "Best bid (only if include_ohlcv=true)", "example": 655000, "nullable": true },
-          "ba": { "type": "integer", "description": "Best ask (only if include_ohlcv=true)", "example": 660000, "nullable": true }
+          "m": { "type": "string", "description": "Midpoint price as decimal string", "example": "0.657500" },
+          "o": { "type": "string", "description": "Opening price (only if include_ohlcv=true)", "example": "0.650000", "nullable": true },
+          "h": { "type": "string", "description": "High price (only if include_ohlcv=true)", "example": "0.665000", "nullable": true },
+          "l": { "type": "string", "description": "Low price (only if include_ohlcv=true)", "example": "0.645000", "nullable": true },
+          "c": { "type": "string", "description": "Closing price (only if include_ohlcv=true)", "example": "0.660000", "nullable": true },
+          "v": { "type": "string", "description": "Volume (only if include_ohlcv=true)", "example": "5.000000", "nullable": true },
+          "bb": { "type": "string", "description": "Best bid (only if include_ohlcv=true)", "example": "0.655000", "nullable": true },
+          "ba": { "type": "string", "description": "Best ask (only if include_ohlcv=true)", "example": "0.660000", "nullable": true }
         }
       },
       "Trade": {
@@ -896,8 +904,8 @@
           "taker_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "maker_pubkey": { "type": "string", "example": "9MWB6iMkyf1JPPXBgkYy4tUX4f9nGGjkNv6Bw4kbHeUc" },
           "side": { "type": "string", "enum": ["bid", "ask"], "example": "bid" },
-          "price": { "type": "integer", "example": 650000 },
-          "size": { "type": "integer", "example": 1000000 },
+          "price": { "type": "string", "description": "Trade price as decimal string", "example": "0.650000" },
+          "size": { "type": "string", "description": "Trade size as decimal string", "example": "1.000000" },
           "executed_at": { "type": "integer", "format": "int64", "example": 1736456789000 }
         }
       },

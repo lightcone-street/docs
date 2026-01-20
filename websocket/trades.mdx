@@ -7,6 +7,8 @@ description: 'Real-time trade executions as they happen'
 
 The `trades` channel provides live trade execution data for specified orderbooks. Each trade is broadcast immediately after execution.
 
+All prices and sizes are returned as **decimal strings** (e.g., `"0.65"`, `"1.5"`) matching the REST API format.
+
 ## Subscribe
 
 ```json
@@ -35,8 +37,8 @@ Each trade execution triggers a message:
   "version": 0.1,
   "data": {
     "orderbook_id": "5BNoPgYe_CrhujZLf",
-    "price": 650000,
-    "size": 1000000,
+    "price": "0.650000",
+    "size": "1.000000",
     "side": "bid",
     "timestamp": "2026-01-09T20:43:24.123Z",
     "trade_id": "trade_1736456789000"
@@ -50,14 +52,12 @@ Each trade execution triggers a message:
   The orderbook where the trade occurred
 </ResponseField>
 
-<ResponseField name="price" type="integer">
-  Trade execution price (scaled by 1e6)
-  
-  Example: `650000` = 0.65
+<ResponseField name="price" type="string">
+  Trade execution price as decimal string (e.g., `"0.650000"`)
 </ResponseField>
 
-<ResponseField name="size" type="integer">
-  Trade size in base token units
+<ResponseField name="size" type="string">
+  Trade size as decimal string (e.g., `"1.000000"`)
 </ResponseField>
 
 <ResponseField name="side" type="string">
@@ -86,4 +86,3 @@ Each trade execution triggers a message:
   }
 }
 ```
-

@@ -9,6 +9,8 @@ The `book_update` channel provides efficient orderbook updates:
 1. **Initial snapshot** with full orderbook state on subscribe
 2. **Delta updates** every 50ms with only changed price levels
 
+All prices and sizes are returned as **decimal strings** (e.g., `"0.65"`, `"100.5"`) matching the REST API format.
+
 ## Subscribe
 
 ```json
@@ -43,12 +45,12 @@ The first message contains the full orderbook state with `is_snapshot: true` and
     "is_snapshot": true,
     "seq": 1,
     "bids": [
-      {"side": "bid", "price": 650000, "size": 1000000},
-      {"side": "bid", "price": 640000, "size": 2000000}
+      {"side": "bid", "price": "0.650000", "size": "1.000000"},
+      {"side": "bid", "price": "0.640000", "size": "2.000000"}
     ],
     "asks": [
-      {"side": "ask", "price": 660000, "size": 1500000},
-      {"side": "ask", "price": 670000, "size": 2500000}
+      {"side": "ask", "price": "0.660000", "size": "1.500000"},
+      {"side": "ask", "price": "0.670000", "size": "2.500000"}
     ]
   }
 }
@@ -67,11 +69,11 @@ Subsequent messages contain only changed price levels with a sequence number:
     "timestamp": "2026-01-09T20:43:24.050Z",
     "seq": 2,
     "bids": [
-      {"side": "bid", "price": 650000, "size": 1500000},
-      {"side": "bid", "price": 640000, "size": 0}
+      {"side": "bid", "price": "0.650000", "size": "1.500000"},
+      {"side": "bid", "price": "0.640000", "size": "0.000000"}
     ],
     "asks": [
-      {"side": "ask", "price": 660000, "size": 2000000}
+      {"side": "ask", "price": "0.660000", "size": "2.000000"}
     ]
   }
 }
@@ -83,7 +85,7 @@ Subsequent messages contain only changed price levels with a sequence number:
 **Apply these rules to maintain your local orderbook:**
 - First message has `is_snapshot: true` - replace your entire orderbook
 - Subsequent messages have no `is_snapshot` field - apply deltas
-- `size: 0` → Delete that price level
+- `size: "0.000000"` → Delete that price level
 - `size > 0` → Update or insert that price level
 </Note>
 
@@ -128,12 +130,12 @@ If you detect a gap in the sequence, your local orderbook is likely stale and ou
   Always `"bid"` for bids
 </ResponseField>
 
-<ResponseField name="bids[].price" type="integer">
-  Price level (scaled by 1e6)
+<ResponseField name="bids[].price" type="string">
+  Price level as decimal string (e.g., `"0.650000"`)
 </ResponseField>
 
-<ResponseField name="bids[].size" type="integer">
-  Total size at this price level (0 means delete)
+<ResponseField name="bids[].size" type="string">
+  Total size at this price level as decimal string. `"0.000000"` means delete the price level.
 </ResponseField>
 
 ## Example Implementation
@@ -141,7 +143,7 @@ If you detect a gap in the sequence, your local orderbook is likely stale and ou
 ```javascript
 class OrderbookManager {
   constructor(reconnectCallback) {
-    this.bids = new Map(); // price -> size
+    this.bids = new Map(); // price string -> size string
     this.asks = new Map();
     this.lastSeq = 0;
     this.reconnectCallback = reconnectCallback;
@@ -172,7 +174,7 @@ class OrderbookManager {
     } else {
       // Delta update - apply changes
       data.bids?.forEach(level => {
-        if (level.size === 0) {
+        if (parseFloat(level.size) === 0) {
           this.bids.delete(level.price);
         } else {
           this.bids.set(level.price, level.size);
@@ -180,7 +182,7 @@ class OrderbookManager {
       });
       
       data.asks?.forEach(level => {
-        if (level.size === 0) {
+        if (parseFloat(level.size) === 0) {
           this.asks.delete(level.price);
         } else {
           this.asks.set(level.price, level.size);
@@ -190,17 +192,18 @@ class OrderbookManager {
   }
 
   getBestBid() {
-    return Math.max(...this.bids.keys());
+    const prices = [...this.bids.keys()].map(parseFloat);
+    return Math.max(...prices).toFixed(6);
   }
 
   getBestAsk() {
-    return Math.min(...this.asks.keys());
+    const prices = [...this.asks.keys()].map(parseFloat);
+    return Math.min(...prices).toFixed(6);
   }
 }
 
 // Usage
 const manager = new OrderbookManager(() => {
-  // Reconnect logic
   console.log('Reconnecting due to sequence gap...');
   ws.close();
   connectWebSocket();
@@ -218,4 +221,3 @@ const manager = new OrderbookManager(() => {
   }
 }
 ```
-

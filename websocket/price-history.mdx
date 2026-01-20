@@ -7,6 +7,8 @@ description: 'Real-time OHLCV candles for charting'
 
 The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Volume) data for charting. You can choose between lightweight midpoint-only updates or full OHLCV data.
 
+All prices and volumes are returned as **decimal strings** (e.g., `"0.65"`, `"10.5"`) matching the REST API format.
+
 ## Subscribe
 
 ### Midpoint Only (Default - Lighter Payload)
@@ -70,8 +72,8 @@ The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Vo
     "resolution": "1h",
     "include_ohlcv": false,
     "prices": [
-      {"t": 1736456400000, "m": 650000},
-      {"t": 1736460000000, "m": 655000}
+      {"t": 1736456400000, "m": "0.650000"},
+      {"t": 1736460000000, "m": "0.655000"}
     ]
   }
 }
@@ -91,23 +93,23 @@ The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Vo
     "prices": [
       {
         "t": 1736456400000,
-        "o": 645000,
-        "h": 660000,
-        "l": 640000,
-        "c": 655000,
-        "v": 10000000,
-        "m": 650000,
-        "bb": 649000,
-        "ba": 651000
+        "o": "0.645000",
+        "h": "0.660000",
+        "l": "0.640000",
+        "c": "0.655000",
+        "v": "10.000000",
+        "m": "0.650000",
+        "bb": "0.649000",
+        "ba": "0.651000"
       },
       {
         "t": 1736460000000,
-        "o": 655000,
-        "h": 665000,
-        "l": 650000,
-        "c": 660000,
-        "v": 8500000,
-        "m": 660000,
+        "o": "0.655000",
+        "h": "0.665000",
+        "l": "0.650000",
+        "c": "0.660000",
+        "v": "8.500000",
+        "m": "0.660000",
         "bb": null,
         "ba": null
       }
@@ -127,14 +129,14 @@ The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Vo
     "orderbook_id": "5BNoPgYe_CrhujZLf",
     "resolution": "1m",
     "t": 1736463600000,
-    "o": 660000,
-    "h": 668000,
-    "l": 658000,
-    "c": 665000,
-    "v": 5000000,
-    "m": 665000,
-    "bb": 664000,
-    "ba": 666000
+    "o": "0.660000",
+    "h": "0.668000",
+    "l": "0.658000",
+    "c": "0.665000",
+    "v": "5.000000",
+    "m": "0.665000",
+    "bb": "0.664000",
+    "ba": "0.666000"
   }
 }
 ```
@@ -145,38 +147,38 @@ The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Vo
   Unix timestamp in milliseconds (start of candle period)
 </ResponseField>
 
-<ResponseField name="o" type="integer | null">
-  Open price (first trade in period). `null` if no trades occurred.
+<ResponseField name="o" type="string | null">
+  Open price as decimal string. `null` if no trades occurred.
 </ResponseField>
 
-<ResponseField name="h" type="integer | null">
-  High price (highest trade in period). `null` if no trades occurred.
+<ResponseField name="h" type="string | null">
+  High price as decimal string. `null` if no trades occurred.
 </ResponseField>
 
-<ResponseField name="l" type="integer | null">
-  Low price (lowest trade in period). `null` if no trades occurred.
+<ResponseField name="l" type="string | null">
+  Low price as decimal string. `null` if no trades occurred.
 </ResponseField>
 
-<ResponseField name="c" type="integer | null">
-  Close price (last trade in period). `null` if no trades occurred.
+<ResponseField name="c" type="string | null">
+  Close price as decimal string. `null` if no trades occurred.
 </ResponseField>
 
-<ResponseField name="v" type="integer">
-  Total volume traded in period
+<ResponseField name="v" type="string">
+  Total volume traded in period as decimal string
 </ResponseField>
 
-<ResponseField name="m" type="integer | null">
-  Midpoint snapshot: `(best_bid + best_ask) / 2`
+<ResponseField name="m" type="string | null">
+  Midpoint snapshot as decimal string: `(best_bid + best_ask) / 2`
   
   For historical data, carries forward from the previous period.
 </ResponseField>
 
-<ResponseField name="bb" type="integer | null">
-  Best bid at snapshot time. `null` for historical data or when price service wasn't running.
+<ResponseField name="bb" type="string | null">
+  Best bid as decimal string at snapshot time. `null` for historical data or when price service wasn't running.
 </ResponseField>
 
-<ResponseField name="ba" type="integer | null">
-  Best ask at snapshot time. `null` for historical data or when price service wasn't running.
+<ResponseField name="ba" type="string | null">
+  Best ask as decimal string at snapshot time. `null` for historical data or when price service wasn't running.
 </ResponseField>
 
 ## Unsubscribe
@@ -191,4 +193,3 @@ The `price_history` channel provides real-time OHLCV (Open, High, Low, Close, Vo
   }
 }
 ```
-
