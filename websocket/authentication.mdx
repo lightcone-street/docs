@@ -1,0 +1,136 @@
+---
+title: "WebSocket Authentication"
+description: "Authenticate WebSocket connections for private user streams"
+---
+
+## Overview
+
+The Lightcone WebSocket API supports both public and authenticated streams:
+
+| Stream Type | Authentication | Examples |
+|-------------|----------------|----------|
+| **Public** | Not required | `book_update`, `trades`, `price_history`, `market` |
+| **Private** | Required | `user` (orders, fills, balances) |
+
+## Authentication Flow
+
+### Step 1: Obtain Authentication Token
+
+To authenticate, you must sign a message with your wallet and call the login endpoint. The response will contain an `auth_token` in the `Set-Cookie` header.
+
+```rust
+use solana_sdk::signature::{Keypair, Signer};
+use reqwest::Client;
+use serde_json::json;
+
+async fn get_auth_token(keypair: &Keypair) -> Result<String, Box<dyn std::error::Error>> {
+    let client = Client::new();
+    
+    // 1. Generate sign-in message
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_millis();
+    let message = format!("Sign in to Lightcone\n\nTimestamp: {}", timestamp);
+    
+    // 2. Sign with your wallet
+    let signature = keypair.sign_message(message.as_bytes());
+    let signature_bs58 = bs58::encode(signature).into_string();
+    
+    // 3. Call login endpoint
+    let response = client.post("https://lightcone.xyz/api/auth/login_or_register_with_message")
+        .json(&json!({
+            "message": message,
+            "signature_bs58": signature_bs58,
+            "pubkey_bytes": keypair.pubkey().to_bytes().to_vec(),
+            "use_embedded_wallet": false,
+        }))
+        .send()
+        .await?;
+    
+    // 4. Extract token from Set-Cookie header
+    let auth_token = response.headers()
+        .get_all("set-cookie")
+        .iter()
+        .find_map(|h| {
+            let s = h.to_str().ok()?;
+            if s.starts_with("auth_token=") {
+                Some(s.split(';').next()?.replace("auth_token=", ""))
+            } else {
+                None
+            }
+        })
+        .ok_or("auth_token cookie not found")?;
+        
+    Ok(auth_token)
+}
+```
+
+
+### Step 2: Connect with Authentication
+
+When connecting to the WebSocket server, you must provide the `auth_token` in the `Cookie` header.
+
+```rust
+use tokio_tungstenite::connect_async;
+use http::Request;
+
+async fn connect_ws(token: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let request = Request::builder()
+        .uri("wss://ws.lightcone.xyz/ws")
+        .header("Cookie", format!("auth_token={}", token))
+        .body(())?;
+
+    let (ws_stream, _) = connect_async(request).await?;
+    println!("Successfully connected!");
+    Ok(())
+}
+```
+
+### Step 3: Subscribe to User Stream
+
+Once connected with a valid token, you can subscribe to your wallet's private stream by sending a subscription message:
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "user",
+    "user": "YOUR_WALLET_ADDRESS"
+  }
+}
+```
+
+
+## Error Responses
+
+### Authentication Required
+
+If you try to subscribe to a user stream without authentication:
+
+```json
+{
+  "type": "error",
+  "version": 0.1,
+  "data": {
+    "error": "Authentication required for user stream",
+    "code": "AUTH_REQUIRED",
+    "hint": "Include auth_token cookie when connecting"
+  }
+}
+```
+
+### Forbidden (Wrong Wallet)
+
+If you try to subscribe to a wallet you don't own:
+
+```json
+{
+  "type": "error",
+  "version": 0.1,
+  "data": {
+    "error": "Not authorized for this user stream",
+    "code": "FORBIDDEN",
+    "hint": "You can only subscribe to your own wallet addresses"
+  }
+}
+```

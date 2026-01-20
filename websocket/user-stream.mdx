@@ -13,7 +13,15 @@ The `user` channel provides a unified stream of all user-specific events:
 
 Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
 
+<Warning>
+**Authentication Required**: The user stream requires authentication. You must include a valid `auth_token` cookie when connecting to the WebSocket. See [WebSocket Authentication](/websocket/authentication) for details.
+</Warning>
+
 ## Subscribe
+
+To subscribe to the user stream, you must:
+1. Connect with authentication (include `auth_token` cookie)
+2. Subscribe to a wallet address that belongs to your authenticated account
 
 ```json
 {
@@ -28,7 +36,7 @@ Upon subscription, you receive an **initial snapshot** of all open orders and ba
 ### Parameters
 
 <ParamField path="user" type="string" required>
-  User's Solana wallet address (base58 encoded)
+  User's Solana wallet address (base58 encoded). Must be a wallet associated with your authenticated account.
 </ParamField>
 
 ## Initial Snapshot

@@ -30,6 +30,14 @@
           "guides/getting-started/enter-the-lightcone-copied-2",
           "guides/getting-started/enter-the-lightcone-copied-1",
           {
+            "group": "Trading",
+            "pages": [
+              "guides/the-trading-1",
+              "guides/the-trading-2",
+              "guides/the-trading-3"
+            ]
+          },
+          {
             "group": "About Lightcone",
             "pages": [
               "guides/about-lightcone/test",
@@ -91,6 +99,7 @@
             "group": "WebSocket API",
             "pages": [
               "websocket/overview",
+              "websocket/authentication",
               "websocket/orderbook-updates",
               "websocket/trades",
               "websocket/user-stream",
