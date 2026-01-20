@@ -718,7 +718,7 @@
           "tick_size": { "type": "integer", "example": 1000 },
           "total_bids": { "type": "integer", "example": 0 },
           "total_asks": { "type": "integer", "example": 0 },
-          "last_trade_price": { "type": "integer", "nullable": true, "example": null },
+          "last_trade_price": { "type": "string", "nullable": true, "description": "Last trade price as decimal string", "example": null },
           "last_trade_time": { "type": "string", "format": "date-time", "nullable": true, "example": null },
           "active": { "type": "boolean", "example": true },
           "created_at": { "type": "string", "format": "date-time", "example": "2026-01-09T20:43:24.107351Z" },
