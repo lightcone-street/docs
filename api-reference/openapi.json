@@ -803,7 +803,7 @@
           "order_hash": { "type": "string", "example": "0xabc123def456789012345678901234567890123456789012345678901234abcd" },
           "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
-          "side": { "type": "integer", "description": "0 for Bid, 1 for Ask", "example": 0 },
+          "side": { "type": "string", "description": "Order side", "example": "bid", "enum": ["bid", "ask"] },
           "maker_amount": { "type": "string", "description": "Maker amount as decimal string", "example": "1.000000" },
           "taker_amount": { "type": "string", "description": "Taker amount as decimal string", "example": "0.600000" },
           "remaining": { "type": "string", "description": "Remaining amount as decimal string", "example": "1.000000" },

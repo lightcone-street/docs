@@ -49,7 +49,7 @@ Immediately after subscribing, you receive the user's current state:
         "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
         "orderbook_id": "5BNoPgYe_CrhujZLf",
         "order_hash": "0xabc123...",
-        "side": 0,
+        "side": "bid",
         "maker_amount": "2.000000",
         "taker_amount": "1.300000",
         "remaining": "1.000000",
@@ -106,7 +106,7 @@ All order state changes are sent as `order_update` events. The `remaining` field
       "fill_amount": "1.000000",
       "remaining": "0.000000",
       "filled": "1.000000",
-      "side": 0,
+      "side": "bid",
       "is_maker": false,
       "created_at": 1736456789000,
       "balance": {
@@ -147,7 +147,7 @@ All order state changes are sent as `order_update` events. The `remaining` field
       "fill_amount": "0.200000",
       "remaining": "0.300000",
       "filled": "0.200000",
-      "side": 1,
+      "side": "ask",
       "is_maker": true,
       "created_at": 1736456700000,
       "balance": {
@@ -228,8 +228,8 @@ Deposits and withdrawals trigger `balance_update` events:
   Total amount filled so far as decimal string
 </ResponseField>
 
-<ResponseField name="side" type="integer">
-  Order side: `0` = BUY, `1` = SELL
+<ResponseField name="side" type="string">
+  Order side: `"bid"` or `"ask"`
 </ResponseField>
 
 <ResponseField name="is_maker" type="boolean">
