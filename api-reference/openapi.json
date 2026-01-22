@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "https://api3.internalcone.com/api",
+      "url": "https://tapi.lightcone.xyz/api",
       "description": "Production API"
     }
   ],
@@ -677,8 +677,8 @@
           "num_outcomes": { "type": "integer", "example": 2 },
           "created_at": { "type": "string", "format": "date-time", "example": "2026-01-09T19:21:40.760798Z" },
           "description": { "type": "string", "nullable": true, "example": "Lightcone wrapped Bitcoin for trading on conditional markets" },
-          "icon_url": { "type": "string", "nullable": true, "example": "https://metadata.internalcone.com/tokens/lcbtc.png" },
-          "metadata_uri": { "type": "string", "nullable": true, "example": "https://metadata.internalcone.com/tokens/lcbtc.json" },
+          "icon_url": { "type": "string", "nullable": true, "example": "https://metadata.lightcone.xyz/tokens/lcbtc.png" },
+          "metadata_uri": { "type": "string", "nullable": true, "example": "https://metadata.lightcone.xyz/tokens/lcbtc.json" },
           "decimals": { "type": "integer", "nullable": true, "example": 6 },
           "conditional_tokens": {
             "type": "array",

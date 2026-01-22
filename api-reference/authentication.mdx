@@ -60,7 +60,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Submit order
     let client = reqwest::Client::new();
     let response = client
-        .post("https://api3.internalcone.com/api/orders/submit")
+        .post("https://tapi.lightcone.xyz/api/orders/submit")
         .json(&order_with_sig)
         .send()
         .await?;
@@ -98,7 +98,7 @@ const signature = nacl.sign.detached(message, keypair.secretKey);
 const signatureBase58 = bs58.encode(signature);
 
 // Submit order
-const response = await fetch('https://api3.internalcone.com/api/orders/submit', {
+const response = await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ ...order, signature: signatureBase58 })
@@ -139,7 +139,7 @@ signature_base58 = base58.b58encode(bytes(signature)).decode()
 # Submit order
 order["signature"] = signature_base58
 response = requests.post(
-    "https://api3.internalcone.com/api/orders/submit",
+    "https://tapi.lightcone.xyz/api/orders/submit",
     json=order
 )
 

@@ -37,7 +37,7 @@ async fn get_auth_token(keypair: &Keypair) -> Result<String, Box<dyn std::error:
     let signature_bs58 = bs58::encode(signature).into_string();
     
     // 3. Call login endpoint
-    let response = client.post("https://lightcone.xyz/api/auth/login_or_register_with_message")
+    let response = client.post("https://tapi.lightcone.xyz/api/auth/login_or_register_with_message")
         .json(&json!({
             "message": message,
             "signature_bs58": signature_bs58,
@@ -76,7 +76,7 @@ use http::Request;
 
 async fn connect_ws(token: &str) -> Result<(), Box<dyn std::error::Error>> {
     let request = Request::builder()
-        .uri("wss://ws.lightcone.xyz/ws")
+        .uri("wss://tws.lightcone.xyz/ws")
         .header("Cookie", format!("auth_token={}", token))
         .body(())?;
 
