@@ -21,25 +21,18 @@ All prices and amounts are returned as **decimal strings** (e.g., `"0.65"`, `"1.
 
 ## Subscribe
 
-To subscribe to the user stream, you must:
-1. Connect with authentication (include `auth_token` cookie)
-2. Subscribe to a wallet address that belongs to your authenticated account
+To subscribe to the user stream, connect with authentication and send:
 
 ```json
 {
   "method": "subscribe",
   "params": {
-    "type": "user",
-    "user": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+    "type": "user"
   }
 }
 ```
 
-### Parameters
-
-<ParamField path="user" type="string" required>
-  User's Solana wallet address (base58 encoded). Must be a wallet associated with your authenticated account.
-</ParamField>
+The server automatically subscribes you to your authenticated wallet (from the JWT). No wallet address parameter is needed.
 
 ## Initial Snapshot
 
@@ -283,8 +276,7 @@ Deposits and withdrawals trigger `balance_update` events:
 {
   "method": "unsubscribe",
   "params": {
-    "type": "user",
-    "user": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+    "type": "user"
   }
 }
 ```

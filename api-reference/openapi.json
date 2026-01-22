@@ -776,8 +776,8 @@
         "properties": {
           "order_hash": { "type": "string", "example": "0xabc123def456..." },
           "status": { "type": "string", "example": "accepted" },
-          "remaining": { "type": "integer", "example": 350000 },
-          "filled": { "type": "integer", "example": 0 },
+          "remaining": { "type": "string", "description": "Remaining amount as decimal string", "example": "0.350000" },
+          "filled": { "type": "string", "description": "Filled amount as decimal string", "example": "0.000000" },
           "fills": { "type": "array", "items": { "type": "object" } }
         }
       },

@@ -39,13 +39,8 @@ All numeric values (prices, sizes, balances, volumes) are returned as **decimal 
 }
 ```
 
-This provides:
-- **Consistency** with industry standards (Binance, Kraken, Hyperliquid)
-- **Ready-to-display** values without client-side scaling
-- **Precision** without floating point issues
-
 <Note>
-**Order submission** still uses raw integers for `maker_amount` and `taker_amount` as these are part of the signed message hash.
+**Order submission** uses lamports for `maker_amount` and `taker_amount` since these values are part of the signed on-chain message hash.
 </Note>
 
 ## Pagination

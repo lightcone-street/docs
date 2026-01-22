@@ -88,17 +88,18 @@ async fn connect_ws(token: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 ### Step 3: Subscribe to User Stream
 
-Once connected with a valid token, you can subscribe to your wallet's private stream by sending a subscription message:
+Once connected with a valid token, subscribe to your private stream. The server automatically uses your authenticated wallet from the JWT:
 
 ```json
 {
   "method": "subscribe",
   "params": {
-    "type": "user",
-    "user": "YOUR_WALLET_ADDRESS"
+    "type": "user"
   }
 }
 ```
+
+No wallet address is needed - the server extracts it from your authentication token.
 
 
 ## Error Responses
@@ -119,18 +120,17 @@ If you try to subscribe to a user stream without authentication:
 }
 ```
 
-### Forbidden (Wrong Wallet)
+### No Linked Wallet
 
-If you try to subscribe to a wallet you don't own:
+If your account has no linked Solana wallet:
 
 ```json
 {
   "type": "error",
   "version": 0.1,
   "data": {
-    "error": "Not authorized for this user stream",
-    "code": "FORBIDDEN",
-    "hint": "You can only subscribe to your own wallet addresses"
+    "error": "User has no linked Solana wallet",
+    "code": "NO_LINKED_WALLET"
   }
 }
 ```
