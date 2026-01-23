@@ -1,44 +1,111 @@
-# Mintlify Starter Kit
+# Lightcone Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Official documentation for Lightcone - Trade the Impact of World Events.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## 🚀 Quick Start
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+### Local Development
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+1. **Install Mintlify CLI**
+   ```bash
+   npm i -g mint
+   ```
 
-## Development
+2. **Run development server**
+   ```bash
+   mint dev
+   ```
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
-npm i -g mint
-```
-
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
+3. **View locally**
+   Open `http://localhost:3000` in your browser
 
 ### Troubleshooting
 
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
+- **Dev environment not running?** Run `mint update` to get the latest CLI version
+- **404 errors?** Make sure you're in the directory with `docs.json`
 
-### Resources
+## 📁 Project Structure
 
-- [Mintlify documentation](https://mintlify.com/docs)
+```
+lightcone-docs/
+├── api-reference/          # REST API documentation
+│   ├── endpoint/          # API endpoint docs
+│   └── openapi.json       # OpenAPI spec
+├── guides/                # User guides
+│   ├── getting-started/   # Getting started guides
+│   ├── about-lightcone/   # About Lightcone
+│   └── the-trading-*.mdx  # Trading guides
+├── websocket/             # WebSocket API docs
+├── videos/                # Video assets
+├── logo/                  # Logo files
+├── docs.json              # Mintlify configuration
+└── README.md              # This file
+```
+
+## 🎨 Custom Pages
+
+### Enter the Lightcone Page
+The `/guides/getting-started/enter-the-lightcone.mdx` page features:
+- Full-screen video background with custom loop
+- Grain overlay effect for visual appeal
+- Two interactive cards (Learn & API)
+- Hidden navigation for immersive experience
+- Responsive design that adapts to mobile
+
+**Technical Details:**
+- Video: 7.6MB, 12.1 seconds, auto-plays with blur effect
+- Icons: Mintlify Icon component (lightbulb, code)
+- Colors: #9FBFC4 (titles), rgba(0,0,0,0.4) (card background)
+- Border: 1px solid rgba(159, 191, 196, 0.3)
+
+## ⚙️ Configuration
+
+### Key Settings in `docs.json`
+- **Theme:** willow
+- **Primary Color:** #6366F1
+- **Background (Light Mode):** #DDE8E8
+- **Logo:** Text-based "Lightcone" (light.svg, dark.svg)
+
+### Navigation Structure
+- **Guides Tab:** Getting started, Trading, About Lightcone
+- **API Reference Tab:** REST API, WebSocket API
+
+## 📝 Adding New Pages
+
+1. Create `.mdx` file in appropriate directory
+2. Add frontmatter with title and description
+3. Update `docs.json` navigation to include new page
+4. Test locally with `mint dev`
+
+## 🚢 Deployment
+
+Changes are automatically deployed when pushed to the default branch via Mintlify's GitHub integration.
+
+### Pre-Deploy Checklist
+- [ ] Run `mint dev` and test all pages
+- [ ] Check for console errors
+- [ ] Verify all links work
+- [ ] Test on mobile/tablet viewports
+- [ ] Review video playback on "Enter the Lightcone" page
+
+## 📚 Resources
+
+- [Mintlify Documentation](https://mintlify.com/docs)
+- [Lightcone Website](https://lightcone.xyz)
+- [API Reference](https://docs.lightcone.xyz/api-reference/rest-overview)
+
+## 🤝 Contributing
+
+For documentation updates or fixes, please follow these guidelines:
+1. Test changes locally before committing
+2. Ensure all links work
+3. Follow existing formatting conventions
+4. Update navigation in `docs.json` if adding/removing pages
+
+## 📧 Support
+
+Questions or issues? Contact [support@lightcone.xyz](mailto:support@lightcone.xyz)
+
+---
+
+Built with [Mintlify](https://mintlify.com)
