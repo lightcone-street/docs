@@ -1,0 +1,6 @@
+/* Custom styling for Lightcone documentation */
+
+/* Make all bold text use the brand color */
+strong, b {
+  color: #9FBFC4 !important;
+}

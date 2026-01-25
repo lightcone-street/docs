@@ -4,7 +4,7 @@
   "name": "Lightcone",
   "colors": {
     "primary": "#6366F1",
-    "light": "#818CF8",
+    "light": "#7FDAF8",
     "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
@@ -24,19 +24,8 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Learn",
         "pages": [
-          "guides/getting-started/enter-the-lightcone",
-          "guides/getting-started/enter-the-lightcone-copied-2",
-          "guides/getting-started/enter-the-lightcone-copied-1",
-          {
-            "group": "Trading",
-            "pages": [
-              "guides/the-trading-1",
-              "guides/the-trading-2",
-              "guides/the-trading-3"
-            ]
-          },
           {
             "group": "About Lightcone",
             "pages": [
@@ -54,7 +43,24 @@
                 ]
               }
             ]
-          }
+          },
+          {
+            "group": "Trading",
+            "pages": [
+              "guides/the-trading-1",
+              "guides/the-trading-2",
+              "guides/the-trading-3"
+            ]
+          },
+          {
+            "group": "Enter the Lightcone",
+            "pages": [
+              "guides/getting-started/enter-the-lightcone-2",
+              "guides/getting-started/enter-the-lightcone-3",
+              "guides/getting-started/enter-the-lightcone-4"
+            ]
+          },
+          "guides/getting-started/enter-the-lightcone-copied-2"
         ]
       },
       {
@@ -115,18 +121,9 @@
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:support@lightcone.xyz"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Launch App",
-      "href": "https://lightcone.xyz"
-    }
+  "tabs": [],
+  "sidebar": {
+    "items": "toggle"
   },
   "footer": {
     "socials": {
@@ -137,7 +134,13 @@
   "background": {
     "decoration": "gradient",
     "color": {
-      "light": "#DDE8E8"
+      "light": "#fafafa"
     }
-  }
+  },
+  "topbar": {
+    "style": "gradient"
+  },
+  "stylesheets": [
+    "/custom.css"
+  ]
 }

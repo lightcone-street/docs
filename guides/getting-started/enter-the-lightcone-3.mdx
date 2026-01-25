@@ -1,0 +1,206 @@
+---
+title: "Enter the Lightcone 3"
+mode: "custom"
+description: "Welcome to Lightcone"
+---
+
+{/*
+  Custom landing page with full-screen video background
+  Features:
+  - Auto-playing looping video with blur effect
+  - Grain overlay for visual depth
+  - Two interactive cards (Learn & API)
+  - Hidden navigation for immersive experience
+  - Responsive design with mobile support
+*/}
+
+<style>{`
+  /* Hide all navigation elements for immersive experience */
+  body {
+    overflow: hidden !important;
+  }
+  header,
+  nav,
+  .navbar,
+  .nav-logo,
+  [class*="nav"],
+  [class*="header"],
+  [class*="sidebar"],
+  [class*="tabs"] {
+    display: none !important;
+  }
+`}</style>
+
+<div style={{
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: 0,
+  padding: 0,
+  zIndex: 9999
+}}>
+  <video
+    autoPlay
+    loop
+    muted
+    playsInline
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      filter: 'blur(8px)'
+    }}
+  >
+    <source src="/videos/enter-the-lightcone-3.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+
+  <div style={{
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+    opacity: 0.35,
+    pointerEvents: 'none',
+    zIndex: 1
+  }}></div>
+
+  <div style={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    zIndex: 2,
+    textAlign: 'center',
+    color: 'white',
+    padding: '2rem',
+    pointerEvents: 'none',
+    maxWidth: '900px',
+    width: '100%'
+  }}>
+    <h1 style={{
+      fontSize: '4rem',
+      fontWeight: 'bold',
+      marginBottom: '1rem',
+      textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+    }}>
+      enter the <span style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>Lightcone</span>
+    </h1>
+    <p style={{
+      fontSize: '1.5rem',
+      marginBottom: '3rem',
+      textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+    }}>
+      Live in the future, trade in the present.
+    </p>
+
+    <div style={{
+      display: 'flex',
+      gap: '1.5rem',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+      pointerEvents: 'auto'
+    }}>
+      <a href="/guides/about-lightcone/test" style={{
+        maxWidth: '388px',
+        width: '100%',
+        padding: '1.5rem',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(159, 191, 196, 0.3)',
+        borderRadius: '12px',
+        textDecoration: 'none',
+        textAlign: 'left',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 0 25px rgba(159, 191, 196, 0.2)';
+        e.currentTarget.style.border = '1px solid rgba(159, 191, 196, 0.5)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.border = '1px solid rgba(159, 191, 196, 0.3)';
+      }}>
+        <Icon icon="lightbulb" size={24} color="#9FBFC4" style={{ marginBottom: '1rem' }} />
+        <h3 style={{
+          fontSize: '1.5rem',
+          fontWeight: '600',
+          color: '#9FBFC4',
+          margin: 0,
+          marginTop: '1.5rem',
+          marginBottom: '0.5rem',
+          textAlign: 'left'
+        }}>
+          Learn
+        </h3>
+        <p style={{
+          color: 'rgba(255, 255, 255, 0.85)',
+          fontSize: '1rem',
+          lineHeight: '1.6',
+          margin: 0,
+          textAlign: 'left'
+        }}>
+          What is Lightcone, why it matters, FAQ, and more
+        </p>
+      </a>
+
+      <a href="/api-reference/rest-overview" style={{
+        maxWidth: '388px',
+        width: '100%',
+        padding: '1.5rem',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(159, 191, 196, 0.3)',
+        borderRadius: '12px',
+        textDecoration: 'none',
+        textAlign: 'left',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 0 25px rgba(159, 191, 196, 0.2)';
+        e.currentTarget.style.border = '1px solid rgba(159, 191, 196, 0.5)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.border = '1px solid rgba(159, 191, 196, 0.3)';
+      }}>
+        <Icon icon="code" size={24} color="#9FBFC4" style={{ marginBottom: '1rem' }} />
+        <h3 style={{
+          fontSize: '1.5rem',
+          fontWeight: '600',
+          color: '#9FBFC4',
+          margin: 0,
+          marginTop: '1.5rem',
+          marginBottom: '0.5rem',
+          textAlign: 'left'
+        }}>
+          API
+        </h3>
+        <p style={{
+          color: 'rgba(255, 255, 255, 0.85)',
+          fontSize: '1rem',
+          lineHeight: '1.6',
+          margin: 0,
+          textAlign: 'left'
+        }}>
+          API docs + our Rust, JavaScript, and Python SDKs
+        </p>
+      </a>
+    </div>
+  </div>
+</div>
