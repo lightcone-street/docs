@@ -45,14 +45,6 @@
             ]
           },
           {
-            "group": "Trading",
-            "pages": [
-              "guides/the-trading-1",
-              "guides/the-trading-2",
-              "guides/the-trading-3"
-            ]
-          },
-          {
             "group": "Enter the Lightcone",
             "pages": [
               "guides/getting-started/enter-the-lightcone-2",
