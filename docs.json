@@ -30,8 +30,8 @@
             "group": "About Lightcone",
             "pages": [
               "guides/about-lightcone/test",
-              "guides/about-lightcone/test-copied-1",
               "guides/about-lightcone/test-copied-2",
+              "guides/about-lightcone/test-copied-1",
               "guides/about-lightcone/test-copied-3",
               {
                 "group": "Misc",
