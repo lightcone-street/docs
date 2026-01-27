@@ -2,5 +2,14 @@
 
 /* Make all bold text use the brand color */
 strong, b {
-  color: #9FBFC4 !important;
+  color: #F0F0F0 !important;
 }
+
+.prose,
+.prose p,
+.prose li,
+.prose span {
+  color: #D5D5D5 !important;
+}
+
+.Dem { color: #000000 !important; }

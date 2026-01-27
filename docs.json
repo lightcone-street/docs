@@ -29,17 +29,17 @@
           {
             "group": "About Lightcone",
             "pages": [
-              "guides/about-lightcone/test",
-              "guides/about-lightcone/test-copied-2",
-              "guides/about-lightcone/test-copied-1",
-              "guides/about-lightcone/test-copied-3",
+              "learn/about-lightcone/what-is-lightcone",
+              "learn/about-lightcone/the-trading",
+              "learn/about-lightcone/the-information",
+              "learn/about-lightcone/faq",
               {
                 "group": "Misc",
                 "pages": [
-                  "guides/about-lightcone/misc/untitled-page-1",
-                  "guides/about-lightcone/misc/terminology",
-                  "guides/about-lightcone/misc/security-audits",
-                  "guides/about-lightcone/misc/untitled-page"
+                  "learn/about-lightcone/misc/untitled-page-1",
+                  "learn/about-lightcone/misc/terminology",
+                  "learn/about-lightcone/misc/security-audits",
+                  "learn/about-lightcone/misc/untitled-page"
                 ]
               }
             ]
@@ -47,12 +47,12 @@
           {
             "group": "Enter the Lightcone",
             "pages": [
-              "guides/getting-started/enter-the-lightcone-2",
-              "guides/getting-started/enter-the-lightcone-3",
-              "guides/getting-started/enter-the-lightcone-4"
+              "learn/getting-started/enter-the-lightcone-2",
+              "learn/getting-started/enter-the-lightcone-3",
+              "learn/getting-started/enter-the-lightcone-4"
             ]
           },
-          "guides/getting-started/enter-the-lightcone-copied-2"
+          "learn/getting-started/enter-the-lightcone-copied-2"
         ]
       },
       {
