@@ -56,11 +56,11 @@ graph TD
     D --> F[Orderbook B]
     E --> G[Conditional Price Discovery]
     F --> G
-    G --> H{Event Resolution}
-    H -->|Outcome A| I[Universe A Redeems]
-    H -->|Outcome B| J[Universe B Redeems]
-    I --> K[Extract to Spot]
-    J --> K
+    G --> H{Deposit 100,000 USDC}
+    H -->|Republicans win universe| I[Trade RWin token pairs]
+    H -->|Democrats lose universe| J[Trade RWin token pairs]
+    I --> K[Redeem RWin token balances 1:1 to spot]
+    J --> L[Test]
 ```
 
 When you deposit an asset, you receive equal quantities of universe-specific tokens. These aren't derivatives or synthetic claims — they're the actual asset as it would exist in each possible future state.

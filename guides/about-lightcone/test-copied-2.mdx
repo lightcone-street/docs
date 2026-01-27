@@ -28,12 +28,12 @@ In practice, behind the scenes this market creates 4 new assets, trading across 
   <Note icon="r" color="#DC9BF2">
     **Republicans win** orderbook:\
     \
-    `RWin-BTC`/`RWin-USDC`
+    `RWin-BTC / RWin-USDC`
   </Note>
   <Note icon="d" color="#45ACF8">
     **Democrats win** orderbook:\
     \
-    `DWin-BTC`/`DWin-USDC`
+    `DWin-BTC / DWin-USDC`
   </Note>
 </Columns>
 
@@ -79,55 +79,19 @@ In that case, if Republicans win, their trades _materialize_ into spot. However,
 You can see how **probability is removed from the trade**. You don't care about _if_ the event happens, only about _impact_ when it does.
 
 ```mermaid
-flowchart TD
-  %% --- Entry ---
-  U[User] --> D{Deposit asset}
-  D -->|1 USDC| S1[Split]
-  D -->|1 BTC| S2[Split]
-
-  %% --- Split results ---
-  S1 --> RU[RWin-USDC]
-  S1 --> DU[DWin-USDC]
-  S2 --> RB[RWin-BTC]
-  S2 --> DB[DWin-BTC]
-
-  %% --- Two parallel orderbooks ("universes") ---
-  subgraph R["Universe: Republicans win (RWin orderbook)"]
-    direction TB
-    RPAIR[(RWin-BTC / RWin-USDC)]
-    RU --> RPAIR
-    RB --> RPAIR
-    RPAIR --> RTR[Trade / set impact exposure in RWin]
-  end
-
-  subgraph DWIN["Universe: Democrats win (DWin orderbook)"]
-    direction TB
-    DPAIR[(DWin-BTC / DWin-USDC)]
-    DU --> DPAIR
-    DB --> DPAIR
-    DPAIR --> DTR[Trade / set impact exposure in DWin]
-  end
-
-  %% --- "Picking a universe" behavior ---
-  U --> P{Pick which universe to trade in}
-  P -->|Trade RWin tokens| RTR
-  P -->|Trade DWin tokens| DTR
-  P -->|Do nothing in one universe| HOLD[Leave the other universe tokens untouched]
-
-  %% --- Resolution ---
-  E[Event resolves: election outcome known] --> W{Which universe wins?}
-
-  %% If Republicans win
-  W -->|Republicans win| RREDEEM[RWin tokens redeem 1:1 to real BTC/USDC]
-  W -->|Republicans win| DZERO[DWin tokens become worthless]
-  RREDEEM --> SPOTR[(Spot BTC / Spot USDC)]
-
-  %% If Democrats win
-  W -->|Democrats win| DREDEEM[DWin tokens redeem 1:1 to real BTC/USDC]
-  W -->|Democrats win| RZERO[RWin tokens become worthless]
-  DREDEEM --> SPOTD[(Spot BTC / Spot USDC)]
+graph TD
+    H{Deposit 100,000 USDC}
+    H -->|Republicans win universe| I(100,000 RWin-USDC)
+    H -->|Democrats lose universe| J(100,000 DWin-USDC)
+    I --> K(BUY 0.75 RWin-BTC at price X)
+    J --> L(...)
+    K --> M(BUY 0.28 RWin-BTC at price Y)
+    L --> O(...)
+    O --> P(100,000 DWin-USDC)
+    M --> Q(1.03 RWin-BTC)
+    Q --> |R WIN| W{1.03 RWin-BTC}
+    P --> |D LOSS| W{Redeem 1.03 RWin-BTC to 1.03 BTC}
 ```
-
 
 ---
 
