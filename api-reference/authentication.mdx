@@ -1,6 +1,7 @@
 ---
 title: 'Authentication'
 description: 'How to authenticate and sign orders'
+icon: 'key'
 ---
 
 
@@ -166,8 +167,10 @@ When creating an order, the following fields are required:
 | `orderbook_id` | string | Orderbook identifier |
 
 <Note>
-`maker_amount` and `taker_amount` must be in lamports (smallest token unit). API responses return scaled decimal strings for display, but order submission uses lamport values.
+`maker_amount` and `taker_amount` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
 </Note>
+
+TODO ADD MORE INSTRUCTIONS/EXPLANATIONS ABOUT HOW TO GET THE CORRECT DECIMALS/LAMPORTS AND USE EM
 
 ## Security Best Practices
 

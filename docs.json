@@ -49,7 +49,6 @@
             "group": "REST API",
             "pages": [
               "api-reference/rest-overview",
-              "api-reference/authentication",
               {
                 "group": "Markets",
                 "pages": [
@@ -70,6 +69,7 @@
               {
                 "group": "Trading",
                 "pages": [
+		  "api-reference/authentication",
                   "api-reference/endpoint/submit-order",
                   "api-reference/endpoint/cancel-order",
                   "api-reference/endpoint/cancel-all-orders",
