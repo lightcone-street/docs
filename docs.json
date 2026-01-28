@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "willow",
+  "theme": "maple",
   "name": "Lightcone",
   "colors": {
     "primary": "#6366F1",
@@ -9,18 +9,6 @@
   },
   "favicon": "/favicon.svg",
   "openapi": "api-reference/openapi.json",
-  "anchors": [
-    {
-      "name": "App",
-      "icon": "chart-line-up",
-      "url": "https://lightcone.xyz"
-    },
-    {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://lightcone.xyz/blog"
-    }
-  ],
   "navigation": {
     "tabs": [
       {
@@ -32,16 +20,8 @@
               "learn/about-lightcone/what-is-lightcone",
               "learn/about-lightcone/the-trading",
               "learn/about-lightcone/the-information",
-              "learn/about-lightcone/faq",
-              {
-                "group": "Misc",
-                "pages": [
-                  "learn/about-lightcone/misc/untitled-page-1",
-                  "learn/about-lightcone/misc/terminology",
-                  "learn/about-lightcone/misc/security-audits",
-                  "learn/about-lightcone/misc/untitled-page"
-                ]
-              }
+              "learn/about-lightcone/faq"
+              
             ]
           },
           {
@@ -52,7 +32,14 @@
               "learn/getting-started/enter-the-lightcone-4"
             ]
           },
-          "learn/getting-started/enter-the-lightcone-copied-2"
+	  {
+            "group": "More",
+            "pages": [
+              "learn/more/Terminology",
+              "learn/more/Audits",
+              "learn/more/Brand Kit"
+            ]
+          }
         ]
       },
       {
@@ -115,7 +102,8 @@
   },
   "tabs": [],
   "sidebar": {
-    "items": "toggle"
+    "items": "toggle",
+    "footer": "toggle"
   },
   "footer": {
     "socials": {

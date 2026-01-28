@@ -1,15 +1,38 @@
-/* Custom styling for Lightcone documentation */
 
-/* Make all bold text use the brand color */
-strong, b {
-  color: #F0F0F0 !important;
+.badge-r {
+background-color: #4E3557 !important;
+color: #DC9BF2 !important;
+border-color: #DC9BF2 !important;
 }
 
-.prose,
-.prose p,
-.prose li,
-.prose span {
+.badge-d {
+background-color: #123249 !important;
+color: #45ACF8 !important;
+border-color: #45ACF8 !important;\
+}
+
+/* LIGHT MODE */
+:root:not(.dark) .prose,
+:root:not(.dark) .prose p,
+:root:not(.dark) .prose li,
+:root:not(.dark) .prose span {
+  color: #4B5563 !important;
+}
+
+:root:not(.dark) strong,
+:root:not(.dark) b {
+  color: #374151 !important;
+}
+
+/* DARK MODE */
+:root.dark .prose,
+:root.dark .prose p,
+:root.dark .prose li,
+:root.dark .prose span {
   color: #D5D5D5 !important;
 }
 
-.Dem { color: #000000 !important; }
+:root.dark strong,
+:root.dark b {
+  color: #F0F0F0 !important;
+}

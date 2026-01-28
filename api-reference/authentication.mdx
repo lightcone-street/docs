@@ -3,19 +3,14 @@ title: 'Authentication'
 description: 'How to authenticate and sign orders'
 ---
 
-## Overview
-
-The API is public for read operations. Order submission requires Ed25519 signatures from the user's Solana wallet.
 
 ## Signing Orders
 
-When submitting orders, you must sign the order data with your Solana wallet's private key:
+When submitting orders, you must sign the order data with a Solana account:
 
-1. **Create the order payload** with all required fields (maker, nonce, market, base_token, quote_token, side, amounts)
-2. **Sign the payload** using Ed25519 with your wallet's keypair
+1. **Create the order payload** with all required fields
+2. **Sign the payload** using Ed25519 with your account's keypair
 3. **Include the signature** in the request as a base58-encoded string
-
-The signature proves ownership of the wallet and prevents order tampering.
 
 ## Code Examples
 
@@ -171,7 +166,7 @@ When creating an order, the following fields are required:
 | `orderbook_id` | string | Orderbook identifier |
 
 <Note>
-`maker_amount` and `taker_amount` must be in lamports (smallest token unit) because they are part of the signed on-chain hash. API responses return scaled decimal strings for display, but order submission uses lamport values.
+`maker_amount` and `taker_amount` must be in lamports (smallest token unit). API responses return scaled decimal strings for display, but order submission uses lamport values.
 </Note>
 
 ## Security Best Practices
