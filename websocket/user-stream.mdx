@@ -56,13 +56,16 @@ Immediately after subscribing, you receive the user's current state:
         "filled": "1.000000",
         "price": "0.650000",
         "created_at": 1736456789000,
-        "expiration": 0
+        "expiration": 0,
+        "base_mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+        "quote_mint": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+        "outcome_index": 0
       }
     ],
     "balances": {
-      "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL:4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy": {
+      "5BNoPgYe_CrhujZLf": {
         "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
-        "deposit_asset": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
+        "orderbook_id": "5BNoPgYe_CrhujZLf",
         "outcomes": [
           {
             "outcome_index": 0,
@@ -240,10 +243,32 @@ Deposits and withdrawals trigger `balance_update` events:
   Unix timestamp in milliseconds when order was created
 </ResponseField>
 
+<ResponseField name="base_mint" type="string">
+  Base token mint address (token being bought/sold)
+</ResponseField>
+
+<ResponseField name="quote_mint" type="string">
+  Quote token mint address (token used for payment)
+</ResponseField>
+
+<ResponseField name="outcome_index" type="integer">
+  Outcome index for the base token (0, 1, 2, ..., or -1 if not found)
+</ResponseField>
+
 ### Balance Fields
 
+The `balances` object is a map keyed by `orderbook_id`, where each entry contains balances for the conditional tokens traded in that orderbook.
+
+<ResponseField name="market_pubkey" type="string">
+  The market public key this orderbook belongs to
+</ResponseField>
+
+<ResponseField name="orderbook_id" type="string">
+  The orderbook identifier (e.g., "5BNoPgYe_CrhujZLf")
+</ResponseField>
+
 <ResponseField name="outcomes" type="array">
-  Array of outcome balances for this market
+  Array of outcome balances for this orderbook
 </ResponseField>
 
 <ResponseField name="outcomes[].outcome_index" type="integer">
