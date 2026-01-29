@@ -10,7 +10,9 @@ Lightcone conditional tokens inherit decimals from their collateral.
 - USDC has 6 decimals, so all conditional USDC tokens like Invasion-USDC inherit 6 decimals.
 - BTC has 8 decimals, so all conditional BTC tokens like Invasion-BTC inherit 8 decimals.
 
-For convenience, API and websocket responses read and return **decimal strings** (e.g., `"0.65"`, `"1.5"`) automatically scaled from the onchain lamport units in all its response. However, order submission needs **lamports** since amounts are signed and sent onchain.
+For convenience, API and websocket responses read and return **decimal strings** (e.g., `"0.65"`, `"1.5"`) automatically scaled from the onchain lamport units in all its response. 
+
+However, order submission needs **lamports** since amounts are signed and sent onchain.
 
 ## Signing
 

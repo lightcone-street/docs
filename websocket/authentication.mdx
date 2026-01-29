@@ -47,39 +47,3 @@ Cookie: auth_token=<your_token>
   "params": { "type": "user" }
 }
 ```
-
-No wallet address needed - extracted from your JWT.
-
-
-## Error Responses
-
-### Authentication Required
-
-If you try to subscribe to a user stream without authentication:
-
-```json
-{
-  "type": "error",
-  "version": 0.1,
-  "data": {
-    "error": "Authentication required for user stream",
-    "code": "AUTH_REQUIRED",
-    "hint": "Include auth_token cookie when connecting"
-  }
-}
-```
-
-### No Linked Wallet
-
-If your account has no linked Solana wallet:
-
-```json
-{
-  "type": "error",
-  "version": 0.1,
-  "data": {
-    "error": "User has no linked Solana wallet",
-    "code": "NO_LINKED_WALLET"
-  }
-}
-```
