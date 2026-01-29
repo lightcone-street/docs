@@ -79,25 +79,15 @@ Subsequent messages contain only changed price levels with a sequence number:
 }
 ```
 
-## Update Rules
+## Maintaining Local State
 
-<Note>
-**Apply these rules to maintain your local orderbook:**
-- First message has `is_snapshot: true` - replace your entire orderbook
-- Subsequent messages have no `is_snapshot` field - apply deltas
-- `size: "0.000000"` → Delete that price level
-- `size > 0` → Update or insert that price level
-</Note>
+Apply delta updates to your local orderbook:
+- `is_snapshot: true` → Replace entire orderbook
+- `size: "0.000000"` → Delete price level
+- `size > 0` → Update or insert price level
 
 <Warning>
-**Sequence Number Validation:**
-
-Each update includes a `seq` field that increments by 1 for each message. Use this to detect missed updates:
-
-- **Sequential (`seq: 1, 2, 3...`)**: Your connection is healthy, apply updates normally
-- **Gap detected (`seq: 1, 2, 5...`)**: You missed messages! Reconnect immediately to get a fresh snapshot
-
-If you detect a gap in the sequence, your local orderbook is likely stale and out of sync. The safest approach is to disconnect and resubscribe to receive a new snapshot with `seq: 1`.
+**Sequence gaps mean missed messages.** If `seq` jumps (e.g., 2 → 5), reconnect to get a fresh snapshot.
 </Warning>
 
 ## Unsubscribe
