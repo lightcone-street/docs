@@ -8,7 +8,10 @@
     "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
-  "openapi": "api-reference/openapi.json",
+  "openapi": {
+    "origin": "api-reference/openapi.json",
+    "responseFieldsDefaultExpandDepth": 2
+  },
   "navigation": {
     "tabs": [
       {
@@ -69,7 +72,7 @@
               {
                 "group": "Trading",
                 "pages": [
-		  "api-reference/authentication",
+                  "api-reference/trading-overview",
                   "api-reference/endpoint/submit-order",
                   "api-reference/endpoint/cancel-order",
                   "api-reference/endpoint/cancel-all-orders",
@@ -81,7 +84,7 @@
             ]
           },
           {
-            "group": "WebSocket API",
+            "group": "WebSocket",
             "pages": [
               "websocket/overview",
               "websocket/authentication",

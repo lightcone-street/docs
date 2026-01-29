@@ -1,0 +1,253 @@
+---
+title: 'Trading Overview'
+description: 'Order signing, amounts, and submission'
+---
+
+## Amounts
+
+Amounts are in **lamports**. Conditional tokens inherit decimals from collateral:
+
+| Collateral | Decimals | Example |
+|------------|----------|---------|
+| USDC | 6 | 650 USDC → `650_000_000` |
+| BTC | 8 | 0.01 BTC → `1_000_000` |
+
+## Signing
+
+Orders require Ed25519 signatures over a 161-byte message hash.
+
+## Using the SDK (Recommended)
+
+The SDK handles the 161-byte message hash construction and signing:
+
+```rust
+use lightcone_sdk::program::{FullOrder, BidOrderParams};
+use lightcone_sdk::api::{LightconeApiClient, SubmitOrderRequest};
+use solana_sdk::signer::{keypair::Keypair, Signer};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let keypair = Keypair::new();
+    let client = LightconeApiClient::new("https://tapi.lightcone.xyz");
+
+    // Create order (buying base token with quote token)
+    let mut order = FullOrder::new_bid(BidOrderParams {
+        nonce: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_millis() as u64,
+        maker: keypair.pubkey(),
+        market: market_pda,
+        base_mint: base_token,   // e.g., RWin-BTC
+        quote_mint: quote_token, // e.g., RWin-USDC
+        maker_amount: 650_000,   // quote tokens you give (6 decimals)
+        taker_amount: 1_000_000, // base tokens you receive (6 decimals)
+        expiration: 0,
+    });
+
+    // Sign (SDK handles hash construction)
+    order.sign(&keypair);
+
+    // Submit
+    let response = client.submit_order(SubmitOrderRequest {
+        maker: keypair.pubkey().to_string(),
+        nonce: order.nonce,
+        market_pubkey: market_pda.to_string(),
+        base_token: base_token.to_string(),
+        quote_token: quote_token.to_string(),
+        side: 0,
+        maker_amount: order.maker_amount,
+        taker_amount: order.taker_amount,
+        expiration: order.expiration,
+        signature: hex::encode(order.signature),
+        orderbook_id: "orderbook_id".to_string(),
+    }).await?;
+
+    Ok(())
+}
+```
+
+## Order Hash Structure
+
+Orders are signed over a 161-byte Keccak256 hash with this layout:
+
+```
+Offset  Size  Field
+──────  ────  ─────────────
+0       8     nonce (u64 LE)
+8       32    maker pubkey
+40      32    market pubkey
+72      32    base_token pubkey
+104     32    quote_token pubkey
+136     1     side (0=bid, 1=ask)
+137     8     maker_amount (u64 LE)
+145     8     taker_amount (u64 LE)
+153     8     expiration (i64 LE)
+───────────────────────────
+        161   Total bytes
+```
+
+The signature is Ed25519 over `keccak256(message_bytes)`.
+
+## Manual Implementation
+
+<Accordion title="TypeScript">
+```typescript
+import { Keypair } from '@solana/web3.js';
+import { keccak_256 } from '@noble/hashes/sha3';
+
+function createOrderHash(order: {
+  nonce: bigint;
+  maker: Uint8Array;      // 32 bytes
+  market: Uint8Array;     // 32 bytes
+  base_token: Uint8Array; // 32 bytes
+  quote_token: Uint8Array;// 32 bytes
+  side: number;
+  maker_amount: bigint;
+  taker_amount: bigint;
+  expiration: bigint;
+}): Uint8Array {
+  const buffer = new ArrayBuffer(161);
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+
+  // nonce (u64 LE)
+  view.setBigUint64(0, order.nonce, true);
+  // maker (32 bytes)
+  bytes.set(order.maker, 8);
+  // market (32 bytes)
+  bytes.set(order.market, 40);
+  // base_token (32 bytes)
+  bytes.set(order.base_token, 72);
+  // quote_token (32 bytes)
+  bytes.set(order.quote_token, 104);
+  // side (1 byte)
+  view.setUint8(136, order.side);
+  // maker_amount (u64 LE)
+  view.setBigUint64(137, order.maker_amount, true);
+  // taker_amount (u64 LE)
+  view.setBigUint64(145, order.taker_amount, true);
+  // expiration (i64 LE)
+  view.setBigInt64(153, order.expiration, true);
+
+  return keccak_256(bytes);
+}
+
+// Sign and submit
+const keypair = Keypair.generate();
+const hash = createOrderHash({ /* ... */ });
+const signature = nacl.sign.detached(hash, keypair.secretKey);
+
+await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    maker: keypair.publicKey.toBase58(),
+    nonce: Number(nonce),
+    market_pubkey: marketPubkey,
+    base_token: baseToken,
+    quote_token: quoteToken,
+    side: 0,
+    maker_amount: Number(makerAmount),
+    taker_amount: Number(takerAmount),
+    expiration: 0,
+    signature: Buffer.from(signature).toString('hex'),
+    orderbook_id: orderbookId,
+  })
+});
+```
+</Accordion>
+
+<Accordion title="Python">
+```python
+from solders.keypair import Keypair
+from solders.pubkey import Pubkey
+import struct
+from Crypto.Hash import keccak
+import requests
+
+def create_order_hash(
+    nonce: int,
+    maker: Pubkey,
+    market: Pubkey,
+    base_token: Pubkey,
+    quote_token: Pubkey,
+    side: int,
+    maker_amount: int,
+    taker_amount: int,
+    expiration: int
+) -> bytes:
+    # Pack 161 bytes
+    message = struct.pack(
+        '<Q',  # nonce (u64 LE)
+        nonce
+    )
+    message += bytes(maker)      # 32 bytes
+    message += bytes(market)     # 32 bytes
+    message += bytes(base_token) # 32 bytes
+    message += bytes(quote_token)# 32 bytes
+    message += struct.pack('B', side)  # 1 byte
+    message += struct.pack('<Q', maker_amount)  # u64 LE
+    message += struct.pack('<Q', taker_amount)  # u64 LE
+    message += struct.pack('<q', expiration)    # i64 LE
+
+    # Keccak256 hash
+    k = keccak.new(digest_bits=256)
+    k.update(message)
+    return k.digest()
+
+# Sign and submit
+keypair = Keypair()
+hash_bytes = create_order_hash(
+    nonce=int(time.time() * 1000),
+    maker=keypair.pubkey(),
+    market=market_pubkey,
+    base_token=base_token,
+    quote_token=quote_token,
+    side=0,
+    maker_amount=650000,
+    taker_amount=1000000,
+    expiration=0
+)
+signature = keypair.sign_message(hash_bytes)
+
+response = requests.post(
+    "https://tapi.lightcone.xyz/api/orders/submit",
+    json={
+        "maker": str(keypair.pubkey()),
+        "nonce": nonce,
+        "market_pubkey": str(market_pubkey),
+        "base_token": str(base_token),
+        "quote_token": str(quote_token),
+        "side": 0,
+        "maker_amount": 650000,
+        "taker_amount": 1000000,
+        "expiration": 0,
+        "signature": signature.hex(),
+        "orderbook_id": orderbook_id
+    }
+)
+```
+</Accordion>
+
+## Order Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `maker` | string | Your Solana wallet public key |
+| `nonce` | integer | Unique identifier (typically timestamp in ms) |
+| `market_pubkey` | string | Market public key |
+| `base_token` | string | Base token mint address |
+| `quote_token` | string | Quote token mint address |
+| `side` | integer | 0 = BID (buy), 1 = ASK (sell) |
+| `maker_amount` | integer | Amount in lamports you give |
+| `taker_amount` | integer | Amount in lamports you receive |
+| `expiration` | integer | Unix timestamp (0 = no expiration) |
+| `signature` | string | Hex-encoded Ed25519 signature |
+| `orderbook_id` | string | Orderbook identifier |
+
+## Security Best Practices
+
+- **Never expose private keys** in client-side code or version control
+- **Use environment variables** for sensitive configuration
+- **Implement nonce tracking** to prevent replay attacks
+- **Set reasonable expirations** on orders to limit exposure

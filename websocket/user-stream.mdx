@@ -16,7 +16,7 @@ Upon subscription, you receive an **initial snapshot** of all open orders and ba
 All prices and amounts are returned as **decimal strings** (e.g., `"0.65"`, `"1.5"`) matching the REST API format.
 
 <Warning>
-**Authentication Required**: The user stream requires authentication. You must include a valid `auth_token` cookie when connecting to the WebSocket. See [WebSocket Authentication](/websocket/authentication) for details.
+**Authentication Required**: The user stream requires authentication. See [WebSocket Authentication](/websocket/authentication) for details.
 </Warning>
 
 ## Subscribe
@@ -92,8 +92,6 @@ All order state changes are sent as `order_update` events. The `remaining` field
 - `remaining > "0"`: Order is still open with that amount on the book
 - `remaining == "0.000000"`: Order is no longer active (fully filled or cancelled)
 
-### Order Filled
-
 ```json
 {
   "type": "user",
@@ -115,70 +113,14 @@ All order state changes are sent as `order_update` events. The `remaining` field
       "base_mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
       "quote_mint": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
       "outcome_index": 0,
-      "balance": {
-        "outcomes": [
-          {
-            "outcome_index": 0,
-            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": "1.000000",
-            "on_book": "0.000000"
-          },
-          {
-            "outcome_index": 1,
-            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": "0.000000",
-            "on_book": "0.000000"
-          }
-        ]
-      }
+      "balance": { ... }
     }
   }
 }
 ```
 
-### Maker Partially Filled
-
-```json
-{
-  "type": "user",
-  "version": 0.1,
-  "data": {
-    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
-    "orderbook_id": "5BNoPgYe_CrhujZLf",
-    "timestamp": "2026-01-09T20:43:24.123Z",
-    "event_type": "order_update",
-    "order": {
-      "order_hash": "0xdef456...",
-      "price": "0.650000",
-      "fill_amount": "0.200000",
-      "remaining": "0.300000",
-      "filled": "0.200000",
-      "side": "ask",
-      "is_maker": true,
-      "created_at": 1736456700000,
-      "base_mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-      "quote_mint": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
-      "outcome_index": 0,
-      "balance": {
-        "outcomes": [
-          {
-            "outcome_index": 0,
-            "mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
-            "idle": "0.000000",
-            "on_book": "0.300000"
-          },
-          {
-            "outcome_index": 1,
-            "mint": "79s9ZAcN4zeegreY5m5S86HEsEdCt2KibspWfoUsAq3s",
-            "idle": "0.200000",
-            "on_book": "0.000000"
-          }
-        ]
-      }
-    }
-  }
-}
-```
+- `remaining > 0`: Order still open on book
+- `remaining == 0`: Order fully filled or cancelled
 
 ## Balance Updates
 
@@ -212,86 +154,6 @@ Deposits and withdrawals trigger `balance_update` events:
   }
 }
 ```
-
-## Field Definitions
-
-### Order Fields
-
-<ResponseField name="order_hash" type="string">
-  Keccak256 hash of the signed order (hex-encoded)
-</ResponseField>
-
-<ResponseField name="price" type="string">
-  Order price as decimal string (e.g., `"0.650000"`)
-</ResponseField>
-
-<ResponseField name="fill_amount" type="string">
-  Amount filled in this specific event as decimal string
-</ResponseField>
-
-<ResponseField name="remaining" type="string">
-  Remaining maker_amount on the book as decimal string (`"0.000000"` = order no longer active)
-</ResponseField>
-
-<ResponseField name="filled" type="string">
-  Total amount filled so far as decimal string
-</ResponseField>
-
-<ResponseField name="side" type="string">
-  Order side: `"bid"` or `"ask"`
-</ResponseField>
-
-<ResponseField name="is_maker" type="boolean">
-  `true` if maker (order is/was resting on book)
-</ResponseField>
-
-<ResponseField name="created_at" type="integer">
-  Unix timestamp in milliseconds when order was created
-</ResponseField>
-
-<ResponseField name="base_mint" type="string">
-  Base token mint address (token being bought/sold)
-</ResponseField>
-
-<ResponseField name="quote_mint" type="string">
-  Quote token mint address (token used for payment)
-</ResponseField>
-
-<ResponseField name="outcome_index" type="integer">
-  Outcome index for the base token (0, 1, 2, ..., or -1 if not found)
-</ResponseField>
-
-### Balance Fields
-
-The `balances` object is a map keyed by `orderbook_id`, where each entry contains balances for the conditional tokens traded in that orderbook.
-
-<ResponseField name="market_pubkey" type="string">
-  The market public key this orderbook belongs to
-</ResponseField>
-
-<ResponseField name="orderbook_id" type="string">
-  The orderbook identifier (e.g., "5BNoPgYe_CrhujZLf")
-</ResponseField>
-
-<ResponseField name="outcomes" type="array">
-  Array of outcome balances for this orderbook
-</ResponseField>
-
-<ResponseField name="outcomes[].outcome_index" type="integer">
-  Index of the outcome (0, 1, 2, ...)
-</ResponseField>
-
-<ResponseField name="outcomes[].mint" type="string">
-  Conditional token mint address for this outcome
-</ResponseField>
-
-<ResponseField name="outcomes[].idle" type="string">
-  Available tokens as decimal string (not locked in orders)
-</ResponseField>
-
-<ResponseField name="outcomes[].on_book" type="string">
-  Tokens locked in resting orders as decimal string
-</ResponseField>
 
 ## Event Types Summary
 
