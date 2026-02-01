@@ -6,6 +6,11 @@ icon: key
 # ACTIVE WIP, DONT TOUCH THIS PAGE, THANKS -- ARAD
 
 <Tip>For most read-only methods, no authentication is required.</Tip>
+<Warning>
+  Never share your private key or commit it to version control. Use environment variables or secure key management systems.
+</Warning>
+
+---
 
 ## Signature authentication
 
@@ -21,70 +26,13 @@ To submit or cancel orders, you must include an Ed25519 signature signed by the 
 2. **Sign the payload** using Ed25519 with your account's keypair
 3. **Include the signature** in the request as a base58-encoded string
 
+### Using the SDK
 
 
-
-## JWT authentication
-
-Required for:
-
-- <Badge color="blue">Post</Badge> Get User Orders
-
-JWT authentication **(TO CHANGE:)** consists of the user’s API credentials (apiKey, secret, passphrase) generated from a wallet's signature. These are used for specific API methods, as well as websocketsc. Requests are signed using [cryptographic method].
+<Accordion title="(Recommended) Sign payload with client">
 
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/auth/login_or_register_with_message` | POST | Sign an arbitrary message |
-| `/auth/login_or_register_with_transaction` | POST | Sign transaction bytes |
-| `/auth/logout` | POST | Clear the session cookie |
-
-Both login endpoints accept:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `pubkey_bytes` | `number[]` | Your wallet's public key as a byte array |
-| `signature` | `number[]` | ED25519 signature bytes |
-| `message` / `transaction` | `number[]` | The signed payload bytes |
-
-On success, the response sets an `auth_token` cookie (HttpOnly, Secure,
-SameSite=Lax) containing an RS256 JWT. If the wallet has not been seen
-before, an account is created automatically.
-
----
-
-# OLD 1
-
-
-<Warning>
-  Never share your private key or commit it to version control. Use environment variables or secure key management systems.
-</Warning>
-
-<Note>
-`maker_amount` and `taker_amount` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
-</Note>
-
----
-
-# OLD 2
-
-## Amount scaling
-
-For convenience, API and websocket responses read and return decimal strings _(e.g. `"0.65"`, `"1.5"`)_ automatically scaled from the onchain lamport units in all its response. 
-
-However, order submission requires **lamports**-denominated amounts, since the payload is signed and executed onchain.
-
-Lightcone conditional tokens inherit decimals from their collateral.
-
-- USDC has 6 decimals, so all conditional USDC tokens like Invasion-USDC inherit 6 decimals.
-- wBTC has 8 decimals, so all conditional BTC tokens like Invasion-BTC inherit 8 decimals.
-
-
-When querying for a list of markets, decimals are listed under each deposit token(?)
-
-## Using the SDK (Recommended)
-
-The SDK handles the 161-byte message hash construction and signing:
+The SDK handles the 161-byte payload construction, hashing and signing:
 
 <CodeGroup>
 
@@ -105,10 +53,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .as_millis() as u64,
         maker: keypair.pubkey(),
         market: market_pda,
-        base_mint: base_token,   // e.g., RWin-BTC
-        quote_mint: quote_token, // e.g., RWin-USDC
-        maker_amount: 650_000,   // quote tokens you give (6 decimals)
-        taker_amount: 1_000_000, // base tokens you receive (6 decimals)
+        base_mint: base_token,   // e.g. pubkey of RWin-BTC
+        quote_mint: quote_token, // e.g. pubkey of RWin-USDC
+        maker_amount: 650_000,   // quote tokens you give (denom in token lamports)
+        taker_amount: 1_000_000, // base tokens you receive (denom in token lamports)
         expiration: 0,
     });
 
@@ -136,11 +84,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 </CodeGroup>
 
-## Order Hash Structure
+</Accordion>
 
-Orders are signed over a 161-byte Keccak256 hash with this layout:
 
-```
+
+### Manual signing
+
+<Accordion title="(Advanced) Sign payload manually">
+
+
+Orders are signed with Ed25519 over a Keccak256 hash of a 161-byte payload, structured as follows.
+
+```text
 Offset  Size  Field
 ──────  ────  ─────────────
 0       8     nonce (u64 LE)
@@ -156,11 +111,12 @@ Offset  Size  Field
         161   Total bytes
 ```
 
-The signature is Ed25519 over `keccak256(message_bytes)`.
+<Note>
+`maker_amount` and `taker_amount` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
+</Note>
 
-## Manual signing (Not Recommended)
+Code example:
 
-<Accordion title="(Code Example) Sign payloads without the SDK">
 <CodeGroup>
 
 ```rust Rust
@@ -291,3 +247,39 @@ print(response.json())
 </CodeGroup>
 
 </Accordion>
+
+---
+
+## JWT authentication
+
+Required for:
+
+- <Badge color="blue">Post</Badge> Get User Orders
+
+<Accordion title="IGNORE">
+
+
+JWT authentication **(TO CHANGE:)** consists of the user’s API credentials (apiKey, secret, passphrase) generated from a wallet's signature. These are used for specific API methods, as well as websockets. Requests are signed using [cryptographic method].
+
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/login_or_register_with_message` | POST | Sign an arbitrary message |
+| `/auth/login_or_register_with_transaction` | POST | Sign transaction bytes |
+| `/auth/logout` | POST | Clear the session cookie |
+
+Both login endpoints accept:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `pubkey_bytes` | `number[]` | Your wallet's public key as a byte array |
+| `signature` | `number[]` | ED25519 signature bytes |
+| `message` / `transaction` | `number[]` | The signed payload bytes |
+
+On success, the response sets an `auth_token` cookie (HttpOnly, Secure,
+SameSite=Lax) containing an RS256 JWT. If the wallet has not been seen
+before, an account is created automatically.
+
+</Accordion>
+
+

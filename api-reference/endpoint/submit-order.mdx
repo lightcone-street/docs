@@ -5,15 +5,13 @@ openapi: 'POST /orders/submit'
 
 <Note>
 
-## Amount scaling (lamports only)
+#### Amount scaling _(lamports only)_
 
-Order amounts specified in `maker_amount`, `taker_amount` **must be denominated in lamports** — the smallest unit of the token — **not** in human-readable units.
+Order amounts specified in `maker_amount`, `taker_amount` must be denominated in lamports, the smallest unit of the token.
 
-### How to determine the correct scaling
+Every `conditional_tokens` object includes a `decimals` field, which informs about the correct scaling to use for this specific conditional token.
 
-Every `conditional_tokens` object includes a `decimals` field.  
-
-**Examples:**
+**Examples**
 
 - A conditional token with `decimals = 6`
   - `1.25` tokens → `(1.25 × 10^6)` → `1_250_000 lamports`
@@ -23,7 +21,8 @@ Every `conditional_tokens` object includes a `decimals` field.
 
 These are not arbitrary; Conditional tokens always inherit the `decimals` of their underlying deposit asset.  
 
+<Warning>
 
-⚠️ Submitting unscaled (human-readable) amounts will result in **incorrect pricing or rejected orders**.
-
+Submitting unscaled _(human-readable)_ amounts will result in incorrect pricing or rejected orders.
+</Warning>
 </Note>
