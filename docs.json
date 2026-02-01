@@ -62,7 +62,7 @@
                 ]
               },
               {
-                "group": "Market Data",
+                "group": "Orderbook Data",
                 "pages": [
                   "api-reference/endpoint/get-orderbook",
                   "api-reference/endpoint/get-price-history",
@@ -70,9 +70,9 @@
                 ]
               },
               {
-                "group": "Trading",
+                "group": "User",
                 "pages": [
-                  "api-reference/trading-overview",
+                  "api-reference/authentication",
                   "api-reference/endpoint/submit-order",
                   "api-reference/endpoint/cancel-order",
                   "api-reference/endpoint/cancel-all-orders",

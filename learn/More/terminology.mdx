@@ -2,3 +2,21 @@
 title: 'Terminology'
 ---
 
+## Core Concepts
+
+### Markets
+
+A market represents a question with multiple possible outcomes (e.g.,
+"US 2028 Presidential Elections" with outcomes A, B, C).
+
+### Settlement
+
+When a market's outcome becomes known (e.g. The 2028 Presidential Elections have concluded and its winner announced), the market settles accordingly.
+
+In practice, settlement means: if outcome A won, then all tokens in the A universe becomes redeemable 1:1 for their underlying spot counterparts. In contrast, 
+
+### Conditional Tokens
+
+Each outcome in a market has a corresponding **conditional token** - an
+on-chain SPL token that is redeemable for the deposit asset if that
+outcome wins. For a market with 3 outcomes, there are 3 conditional tokens.

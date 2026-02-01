@@ -1,0 +1,293 @@
+---
+title: Authentication (WIP)
+icon: key
+---
+
+# ACTIVE WIP, DONT TOUCH THIS PAGE, THANKS -- ARAD
+
+<Tip>For most read-only methods, no authentication is required.</Tip>
+
+## Signature authentication
+
+Required for:
+
+- <Badge color="blue">Post</Badge> Submit Order
+- <Badge color="blue">Post</Badge> Cancel Order
+- <Badge color="blue">Post</Badge> Cancel All Orders
+
+To submit or cancel orders, you must include an Ed25519 signature signed by the relevant Solana account. It cryptographically binds the order to the wallet's ownership, ensuring orders cannot be manipulated.
+
+1. **Create an order payload** with all required fields
+2. **Sign the payload** using Ed25519 with your account's keypair
+3. **Include the signature** in the request as a base58-encoded string
+
+
+
+
+## JWT authentication
+
+Required for:
+
+- <Badge color="blue">Post</Badge> Get User Orders
+
+JWT authentication **(TO CHANGE:)** consists of the user’s API credentials (apiKey, secret, passphrase) generated from a wallet's signature. These are used for specific API methods, as well as websocketsc. Requests are signed using [cryptographic method].
+
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/login_or_register_with_message` | POST | Sign an arbitrary message |
+| `/auth/login_or_register_with_transaction` | POST | Sign transaction bytes |
+| `/auth/logout` | POST | Clear the session cookie |
+
+Both login endpoints accept:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `pubkey_bytes` | `number[]` | Your wallet's public key as a byte array |
+| `signature` | `number[]` | ED25519 signature bytes |
+| `message` / `transaction` | `number[]` | The signed payload bytes |
+
+On success, the response sets an `auth_token` cookie (HttpOnly, Secure,
+SameSite=Lax) containing an RS256 JWT. If the wallet has not been seen
+before, an account is created automatically.
+
+---
+
+# OLD 1
+
+
+<Warning>
+  Never share your private key or commit it to version control. Use environment variables or secure key management systems.
+</Warning>
+
+<Note>
+`maker_amount` and `taker_amount` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
+</Note>
+
+---
+
+# OLD 2
+
+## Amount scaling
+
+For convenience, API and websocket responses read and return decimal strings _(e.g. `"0.65"`, `"1.5"`)_ automatically scaled from the onchain lamport units in all its response. 
+
+However, order submission requires **lamports**-denominated amounts, since the payload is signed and executed onchain.
+
+Lightcone conditional tokens inherit decimals from their collateral.
+
+- USDC has 6 decimals, so all conditional USDC tokens like Invasion-USDC inherit 6 decimals.
+- wBTC has 8 decimals, so all conditional BTC tokens like Invasion-BTC inherit 8 decimals.
+
+
+When querying for a list of markets, decimals are listed under each deposit token(?)
+
+## Using the SDK (Recommended)
+
+The SDK handles the 161-byte message hash construction and signing:
+
+<CodeGroup>
+
+```rust Rust
+use lightcone_sdk::program::{FullOrder, BidOrderParams};
+use lightcone_sdk::api::{LightconeApiClient, SubmitOrderRequest};
+use solana_sdk::signer::{keypair::Keypair, Signer};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let keypair = Keypair::new();
+    let client = LightconeApiClient::new("https://tapi.lightcone.xyz");
+
+    // Create order (buying base token with quote token)
+    let mut order = FullOrder::new_bid(BidOrderParams {
+        nonce: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_millis() as u64,
+        maker: keypair.pubkey(),
+        market: market_pda,
+        base_mint: base_token,   // e.g., RWin-BTC
+        quote_mint: quote_token, // e.g., RWin-USDC
+        maker_amount: 650_000,   // quote tokens you give (6 decimals)
+        taker_amount: 1_000_000, // base tokens you receive (6 decimals)
+        expiration: 0,
+    });
+
+    // Sign (SDK handles hash construction)
+    order.sign(&keypair);
+
+    // Submit
+    let response = client.submit_order(SubmitOrderRequest {
+        maker: keypair.pubkey().to_string(),
+        nonce: order.nonce,
+        market_pubkey: market_pda.to_string(),
+        base_token: base_token.to_string(),
+        quote_token: quote_token.to_string(),
+        side: 0,
+        maker_amount: order.maker_amount,
+        taker_amount: order.taker_amount,
+        expiration: order.expiration,
+        signature: hex::encode(order.signature),
+        orderbook_id: "orderbook_id".to_string(),
+    }).await?;
+
+    Ok(())
+}
+```
+
+</CodeGroup>
+
+## Order Hash Structure
+
+Orders are signed over a 161-byte Keccak256 hash with this layout:
+
+```
+Offset  Size  Field
+──────  ────  ─────────────
+0       8     nonce (u64 LE)
+8       32    maker pubkey
+40      32    market pubkey
+72      32    base_token pubkey
+104     32    quote_token pubkey
+136     1     side (0=bid, 1=ask)
+137     8     maker_amount (u64 LE)
+145     8     taker_amount (u64 LE)
+153     8     expiration (i64 LE)
+───────────────────────────
+        161   Total bytes
+```
+
+The signature is Ed25519 over `keccak256(message_bytes)`.
+
+## Manual signing (Not Recommended)
+
+<Accordion title="(Code Example) Sign payloads without the SDK">
+<CodeGroup>
+
+```rust Rust
+use solana_sdk::{
+    signature::{Keypair, Signer},
+    pubkey::Pubkey,
+};
+use reqwest;
+use serde_json::json;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+    
+    // Create order data
+    let order = json!({
+        "maker": keypair.pubkey().to_string(),
+        "nonce": 1736456789000i64,
+        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+        "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+        "side": 0,
+        "maker_amount": 350000i64,
+        "taker_amount": 650000i64,
+        "expiration": 0i64,
+        "orderbook_id": "5BNoPgYe_CrhujZLf"
+    });
+    
+    // Sign the order (implement your signing logic)
+    let signature = keypair.sign_message(
+        serde_json::to_string(&order)?.as_bytes()
+    );
+    
+    // Add signature to order
+    let mut order_with_sig = order.clone();
+    order_with_sig["signature"] = json!(signature.to_string());
+    
+    // Submit order
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://tapi.lightcone.xyz/api/orders/submit")
+        .json(&order_with_sig)
+        .send()
+        .await?;
+    
+    println!("Response: {:?}", response.text().await?);
+    Ok(())
+}
+```
+
+```typescript TypeScript
+import { Keypair } from '@solana/web3.js';
+import bs58 from 'bs58';
+import nacl from 'tweetnacl';
+
+// Your wallet keypair
+const keypair = Keypair.generate();
+
+// Create order data
+const order = {
+  maker: keypair.publicKey.toBase58(),
+  nonce: Date.now(),
+  market_pubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+  base_token: "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+  quote_token: "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+  side: 0,
+  maker_amount: 350000,
+  taker_amount: 650000,
+  expiration: 0,
+  orderbook_id: "5BNoPgYe_CrhujZLf"
+};
+
+// Sign the order
+const message = Buffer.from(JSON.stringify(order));
+const signature = nacl.sign.detached(message, keypair.secretKey);
+const signatureBase58 = bs58.encode(signature);
+
+// Submit order
+const response = await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ ...order, signature: signatureBase58 })
+});
+
+console.log(await response.json());
+```
+
+```python Python
+from solders.keypair import Keypair
+from solders.signature import Signature
+import requests
+import json
+import base58
+
+# Your wallet keypair
+keypair = Keypair()
+
+# Create order data
+order = {
+    "maker": str(keypair.pubkey()),
+    "nonce": 1736456789000,
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
+    "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
+    "side": 0,
+    "maker_amount": 350000,
+    "taker_amount": 650000,
+    "expiration": 0,
+    "orderbook_id": "5BNoPgYe_CrhujZLf"
+}
+
+# Sign the order
+message = json.dumps(order).encode()
+signature = keypair.sign_message(message)
+signature_base58 = base58.b58encode(bytes(signature)).decode()
+
+# Submit order
+order["signature"] = signature_base58
+response = requests.post(
+    "https://tapi.lightcone.xyz/api/orders/submit",
+    json=order
+)
+
+print(response.json())
+```
+
+</CodeGroup>
+
+</Accordion>

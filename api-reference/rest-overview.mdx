@@ -1,6 +1,7 @@
-The Lightcone API is a RESTful JSON API for interacting with the Lightcone
-protocol. It provides endpoints for market data, order
-management, position tracking, and trade history.
+---
+title: 'Introduction'
+description: "Documentation for the Lightcone public API"
+---
 
 <CardGroup cols={3}>
   <Card title="Rust SDK" icon="rust" href="https://github.com/lightcone-street/lightcone-sdk/tree/main/rust">
@@ -14,103 +15,23 @@ management, position tracking, and trade history.
   </Card>
 </CardGroup>
 
-## Base URL
+## Endpoint
 
 https://tapi.lightcone.xyz/api
 
-All endpoints are served over HTTPS.
+## Protocol
 
-## Authentication
+Lightcone's CLOB is hybrid-decentralized orderbook; Operators match orders offchain, while asset issuance, settlement and signature verification are executed onchain, non-custodially and trustlessly. Orders are ED25519-signed payloads.
 
-Lightcone uses Solana wallet authentication with JWT session tokens.
-Authentication is a two-step process:
+The protocol specifies, for each market, the **_Deposit Tokens_** that available for trading _(e.g. USDC, wBTC, wETH)._
 
-1. **Sign a message or transaction** with your Solana wallet
-2. **Receive a JWT** returned as an `auth_token` HttpOnly cookie
+Deposit Tokens are held as collateral, against which a set of SPL **_Conditional Tokens_** are minted, one per possible outcome, _(e.g. USDC => [A-USDC, B-USDC])_, via what is called a **_split_**.
 
-The JWT is valid for 14 days. Subsequent requests are authenticated
-automatically via the cookie - no Authorization header is required.
+In the opposite direction - a full set of Conditional Tokens can **_merge_** to claim the underlying Deposit Tokens _(e.g. [A-USDC, B-USDC] => USDC)_
 
-### Authenticating
+The protocol uses a custom Solana program facilitating swaps between _**Conditional Token pairs** (e.g. A-USDC/A-BTC)._ An _**Orderbook**_ always pairs Conditional Tokens of the **_same Universe/Condition_** against each other (_e.g. A against A, B against B)._
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/auth/login_or_register_with_message` | POST | Sign an arbitrary message |
-| `/auth/login_or_register_with_transaction` | POST | Sign transaction bytes |
-| `/auth/logout` | POST | Clear the session cookie |
-
-Both login endpoints accept:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `pubkey_bytes` | `number[]` | Your wallet's public key as a byte array |
-| `signature` | `number[]` | ED25519 signature bytes |
-| `message` / `transaction` | `number[]` | The signed payload bytes |
-
-On success, the response sets an `auth_token` cookie (HttpOnly, Secure,
-SameSite=Lax) containing an RS256 JWT. If the wallet has not been seen
-before, an account is created automatically.
-
-> **Note:** Public endpoints (markets, orderbook, price history, trades)
-> do not require authentication. Only order submission, cancellation, and
-> position queries require an active session.
-
-### Order Signatures
-
-Authentication proves your identity. Order signatures are separate - each
-order you submit must include a `signature` field containing a hex-encoded
-ED25519 signature over the order parameters, signed by the maker's wallet.
-This proves the order was authorized by the wallet owner, independent of
-the session.
-
-## Request Format
-
-All request bodies must be JSON with `Content-Type: application/json`.
-
-**Path parameters** are used for resource lookups:
-GET /api/markets/{market_pubkey}
-GET /api/users/{user_pubkey}/positions
-GET /api/orderbook/{orderbook_id}
-
-**Query parameters** are used for filtering and pagination:
-GET /api/trades?user_pubkey=...&from=1704067200000&limit=100&cursor=5432
-GET /api/price-history?orderbook_id=...&resolution=1h&limit=500
-
-## Response Format
-
-All responses are JSON. Successful responses return the resource directly.
-Error responses use this shape:
-
-```json
-{
-"status": "error",
-"message": "Human-readable description",
-"code": "MACHINE_READABLE_CODE"
-}
-```
-
-## Numeric Values
-
-All token amounts and prices are returned as decimal strings, not
-numbers. The API scales raw on-chain integers to human-readable values
-using each token's decimal precision.
-
-```json
-{
-"balance": "1.500000",
-"price": "0.650000",
-"size": "10.000000"
-}
-```
-
-When submitting orders, amounts are specified as raw integers
-(maker_amount, taker_amount).
-
-## Timestamps
-
-All timestamps are in milliseconds (Unix epoch). This includes
-created_at, executed_at, candle timestamp fields, and query
-parameters like from and to.
+After a market **_settles_**, Conditional Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if A Universe won; A-USDC, A-BTC redeem for USDC, BTC respectively)_, while the Conditional Tokens of all other Universes become effectively worthless.
 
 ## Error Codes
 
@@ -123,23 +44,3 @@ Error responses include a code field for programmatic handling:
 | SERVICE_UNAVAILABLE | Exchange engine is unreachable |
 | NOT_FOUND | Requested resource does not exist |
 | INVALID_ARGUMENT | Request parameter is invalid |
-
-## Pagination
-
-List endpoints use cursor-based pagination:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| limit | integer | Maximum results to return (endpoint-specific max) |
-| cursor | string | Cursor from previous response's next_cursor |
-
-Response:
-
-```json
-{
-"trades": [...],
-"next_cursor": "12345",
-"has_more": true,
-"limit": 100
-}
-```

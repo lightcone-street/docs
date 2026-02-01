@@ -2,3 +2,14 @@
 title: 'Get User Orders'
 openapi: 'POST /users/orders'
 ---
+
+<Note>
+**This endpoint requires JWT authentication:**
+
+1. Sign an authentication message using your Solana account
+2. Receive a JWT, returned as an `auth_token` HttpOnly cookie
+
+The JWT is valid for 14 days. Subsequent requests are authenticated via the cookie; an `Authorization` header is not required.
+</Note>
+
+
