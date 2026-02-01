@@ -51,7 +51,7 @@
           {
             "group": "REST API",
             "pages": [
-              "api-reference/rest-overview",
+              "api-reference/rest-introduction",
               {
                 "group": "Markets",
                 "pages": [

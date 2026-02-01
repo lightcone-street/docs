@@ -32,15 +32,3 @@ In the opposite direction - a full set of Conditional Tokens can **_merge_** to 
 The protocol uses a custom Solana program facilitating swaps between _**Conditional Token pairs** (e.g. A-USDC/A-BTC)._ An _**Orderbook**_ always pairs Conditional Tokens of the **_same Universe/Condition_** against each other (_e.g. A against A, B against B)._
 
 After a market **_settles_**, Conditional Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if A Universe won; A-USDC, A-BTC redeem for USDC, BTC respectively)_, while the Conditional Tokens of all other Universes become effectively worthless.
-
-## Error Codes
-
-Error responses include a code field for programmatic handling:
-
-| Code | Description |
-|------|-------------|
-| INVALID_PUBKEY | Public key is malformed or wrong length |
-| INVALID_SIGNATURE | Signature verification failed |
-| SERVICE_UNAVAILABLE | Exchange engine is unreachable |
-| NOT_FOUND | Requested resource does not exist |
-| INVALID_ARGUMENT | Request parameter is invalid |

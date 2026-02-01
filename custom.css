@@ -1,3 +1,7 @@
+:root {
+  font-size: 14px; /* default is ~16px */
+}
+
 
 .badge-r {
 background-color: #4E3557 !important;
