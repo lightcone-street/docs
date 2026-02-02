@@ -57,7 +57,7 @@
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/Market" }
                     },
-                    "next_cursor": { "type": "integer", "format": "int64", "nullable": true, "description": "Cursor for next page, null if no more results", "example": 20 },
+                    "next_cursor": { "type": "integer", "nullable": true, "description": "Cursor for next page, null if no more results", "example": 20 },
                     "has_more": { "type": "boolean", "description": "Whether more results are available", "example": true }
                   }
                 }
@@ -233,7 +233,7 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Get user orders and balances",
-        "description": "Returns all open orders for the authenticated user across all markets, along with their current balances. Requires JWT authentication via HttpOnly cookie.",
+        "description": "Returns all open orders for the authenticated user across all markets",
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           {
@@ -456,14 +456,14 @@
           {
             "name": "cursor",
             "in": "query",
-            "schema": { "type": "integer", "format": "int64" },
+            "schema": { "type": "integer"},
             "description": "Pagination cursor",
             "example": 1736456789000
           },
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 200, "maximum": 1000 },
+            "schema": { "type": "integer", "default": 200 },
             "description": "Max candles to return (default 200, max 1000)",
             "example": 100
           }
@@ -574,7 +574,7 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "auth_token",
-        "description": "JWT token stored in HttpOnly cookie. Obtain by signing an auth message with your Solana wallet."
+        "description": "JWT token stored in HttpOnly cookie."
       }
     },
     "schemas": {
@@ -955,14 +955,7 @@
           "include_ohlcv": { "type": "boolean", "example": false },
           "prices": { "type": "array", "items": { "$ref": "#/components/schemas/PriceSnapshot" } },
           "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "format": "int64", "example": 1705312200000 },
-          "decimals": {
-            "type": "object",
-            "description": "Decimal precision for interpreting values",
-            "properties": {
-              "price": { "type": "integer", "description": "Decimals for price fields (o, h, l, c, m, bb, ba)", "example": 6 },
-              "volume": { "type": "integer", "description": "Decimals for volume field (v)", "example": 6 }
-            }
+          "next_cursor": { "type": "integer", "example": 1705312200000 }
           }
         }
       },
@@ -1002,16 +995,7 @@
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
           "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "format": "int64", "example": 1233 },
-          "decimals": {
-            "type": "object",
-            "description": "Decimal precision for interpreting values",
-            "properties": {
-              "price": { "type": "integer", "example": 6 },
-              "size": { "type": "integer", "example": 6 },
-              "fee": { "type": "integer", "example": 6 }
-            }
-          }
+          "next_cursor": { "type": "integer", "example": 1233 }
         }
       },
       "CreateOrderbookRequest": {
