@@ -956,7 +956,6 @@
           "prices": { "type": "array", "items": { "$ref": "#/components/schemas/PriceSnapshot" } },
           "has_more": { "type": "boolean", "example": true },
           "next_cursor": { "type": "integer", "example": 1705312200000 }
-          }
         }
       },
       "PriceSnapshot": {
