@@ -10,6 +10,19 @@ openapi: 'POST /users/orders'
 2. Receive a JWT, returned as an `auth_token` HttpOnly cookie
 
 The JWT is valid for 14 days. Subsequent requests are authenticated via the cookie; an `Authorization` header is not required.
+
+The user is identified from the JWT - no request body is needed.
 </Note>
+
+## Pagination
+
+This endpoint supports cursor-based pagination:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `cursor` | string | - | Order hash from previous page's `next_cursor` |
+| `limit` | integer | 200 | Max orders to return (max 1000) |
+
+The response includes `next_cursor` (order hash for next page) and `has_more` (boolean).
 
 

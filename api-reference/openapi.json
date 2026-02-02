@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Lightcone API",
-    "description": "REST API for Lightcone, an Impact Markets exchange built on Solana. Lightcone splits underlying Solana tokens into conditional representations whose redeemability depends on real-world event resolution. The exchange features a hybrid CLOB with off-chain matching and on-chain settlement.\n\n## Overview\n\nThe API provides endpoints for:\n- **Markets**: Query conditional token markets and their configurations\n- **Orderbooks**: Access order book data and depth\n- **Orders**: Submit, cancel, and query orders\n- **Positions**: Query user balances and positions\n- **Trades**: Historical trade data\n- **Price History**: OHLCV candlestick data\n\n## Authentication\n\nCurrently, the API is public for read operations. Order submission requires Ed25519 signatures from the user's Solana wallet. Authentication improvements are planned for future releases.\n\n## Rate Limits\n\nRate limits are not currently enforced but may be added in future versions.",
+    "description": "REST API for Lightcone, an Impact Markets exchange built on Solana. Lightcone splits underlying Solana tokens into conditional representations whose redeemability depends on real-world event resolution. The exchange features a hybrid CLOB with off-chain matching and on-chain settlement.\n\n## Overview\n\nThe API provides endpoints for:\n- **Markets**: Query conditional token markets and their configurations\n- **Orderbooks**: Access order book data and depth\n- **Orders**: Submit, cancel, and query orders\n- **Positions**: Query user balances and positions\n- **Trades**: Historical trade data\n- **Price History**: OHLCV candlestick data\n\n## Authentication\n\nMost endpoints are public for read operations. Order submission requires Ed25519 signatures from the user's Solana wallet.\n\nThe `/users/orders` endpoint requires JWT authentication:\n\n## Rate Limits\n\nRate limits are not currently enforced but may be added in future versions.",
     "version": "1.0.0",
     "contact": {
       "name": "Lightcone Team"
@@ -28,7 +28,23 @@
       "get": {
         "tags": ["Markets"],
         "summary": "List all markets",
-        "description": "Returns all markets",
+        "description": "Returns all markets with cursor-based pagination.",
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "description": "Pagination cursor",
+            "example": 10
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 200 },
+            "description": "Max markets to return (default 200, max 1000)",
+            "example": 50
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of markets with metadata",
@@ -37,11 +53,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "total": { "type": "integer", "example": 1 },
                     "markets": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/Market" }
-                    }
+                    },
+                    "next_cursor": { "type": "integer", "format": "int64", "nullable": true, "description": "Cursor for next page, null if no more results", "example": 20 },
+                    "has_more": { "type": "boolean", "description": "Whether more results are available", "example": true }
                   }
                 }
               }
@@ -216,21 +233,24 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Get user orders and balances",
-        "description": "Returns all open orders for a user across all markets, along with their current balances.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["user_pubkey"],
-                "properties": {
-                  "user_pubkey": { "type": "string", "description": "User's Solana wallet pubkey", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" }
-                }
-              }
-            }
+        "description": "Returns all open orders for the authenticated user across all markets, along with their current balances. Requires JWT authentication via HttpOnly cookie.",
+        "security": [{ "cookieAuth": [] }],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Pagination cursor",
+            "example": "0xabc123..."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 200 },
+            "description": "Max orders to return (default 200, max 1000)",
+            "example": 50
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "User's open orders and balances",
@@ -247,7 +267,22 @@
                     "balances": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/UserMarketBalance" }
-                    }
+                    },
+                    "next_cursor": { "type": "string", "nullable": true, "description": "Cursor for next page (order_hash), null if no more results", "example": "0xdef456..." },
+                    "has_more": { "type": "boolean", "description": "Whether more results are available", "example": true }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "example": "No auth token" }
                   }
                 }
               }
@@ -393,9 +428,8 @@
           {
             "name": "resolution",
             "in": "query",
-            "required": true,
-            "schema": { "type": "string", "enum": ["1m", "5m", "15m", "1h", "4h", "1d"] },
-            "description": "Candle resolution",
+            "schema": { "type": "string", "enum": ["1m", "5m", "15m", "1h", "4h", "1d"], "default": "1m" },
+            "description": "Candle resolution (default: 1m)",
             "example": "1h"
           },
           {
@@ -420,10 +454,17 @@
             "example": 1736543189000
           },
           {
+            "name": "cursor",
+            "in": "query",
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "Pagination cursor",
+            "example": 1736456789000
+          },
+          {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 1000 },
-            "description": "Max candles to return",
+            "schema": { "type": "integer", "default": 200, "maximum": 1000 },
+            "description": "Max candles to return (default 200, max 1000)",
             "example": 100
           }
         ],
@@ -443,7 +484,7 @@
       "get": {
         "tags": ["Trades"],
         "summary": "Get trades",
-        "description": "Returns historical trades for a conditional token pair.",
+        "description": "Returns historical trades for a conditional token pair with cursor-based pagination.",
         "parameters": [
           {
             "name": "orderbook_id",
@@ -454,10 +495,38 @@
             "example": "5BNoPgYe_CrhujZLf"
           },
           {
+            "name": "user_pubkey",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter trades by user pubkey (as maker or taker)",
+            "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "Start timestamp (milliseconds, inclusive)",
+            "example": 1736456789000
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "End timestamp (milliseconds, inclusive)",
+            "example": 1736543189000
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": { "type": "integer", "format": "int64" },
+            "description": "Pagination cursor",
+            "example": 1233
+          },
+          {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 100 },
-            "description": "Max trades to return",
+            "schema": { "type": "integer", "default": 200, "maximum": 1000 },
+            "description": "Max trades to return (default 200, max 1000)",
             "example": 50
           }
         ],
@@ -500,6 +569,14 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "auth_token",
+        "description": "JWT token stored in HttpOnly cookie. Obtain by signing an auth message with your Solana wallet."
+      }
+    },
     "schemas": {
       "Market": {
         "type": "object",
@@ -878,7 +955,15 @@
           "include_ohlcv": { "type": "boolean", "example": false },
           "prices": { "type": "array", "items": { "$ref": "#/components/schemas/PriceSnapshot" } },
           "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "format": "int64", "example": 1705312200000 }
+          "next_cursor": { "type": "integer", "format": "int64", "example": 1705312200000 },
+          "decimals": {
+            "type": "object",
+            "description": "Decimal precision for interpreting values",
+            "properties": {
+              "price": { "type": "integer", "description": "Decimals for price fields (o, h, l, c, m, bb, ba)", "example": 6 },
+              "volume": { "type": "integer", "description": "Decimals for volume field (v)", "example": 6 }
+            }
+          }
         }
       },
       "PriceSnapshot": {
@@ -906,6 +991,8 @@
           "side": { "type": "string", "enum": ["bid", "ask"], "example": "bid" },
           "price": { "type": "string", "description": "Trade price as decimal string", "example": "0.650000" },
           "size": { "type": "string", "description": "Trade size as decimal string", "example": "1.000000" },
+          "taker_fee": { "type": "string", "nullable": true, "description": "Taker fee as decimal string (in quote token)", "example": "0.001000" },
+          "maker_fee": { "type": "string", "nullable": true, "description": "Maker fee as decimal string (in quote token)", "example": "-0.000500" },
           "executed_at": { "type": "integer", "format": "int64", "example": 1736456789000 }
         }
       },
@@ -915,7 +1002,16 @@
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
           "has_more": { "type": "boolean", "example": true },
-          "next_cursor": { "type": "integer", "format": "int64", "example": 1233 }
+          "next_cursor": { "type": "integer", "format": "int64", "example": 1233 },
+          "decimals": {
+            "type": "object",
+            "description": "Decimal precision for interpreting values",
+            "properties": {
+              "price": { "type": "integer", "example": 6 },
+              "size": { "type": "integer", "example": 6 },
+              "fee": { "type": "integer", "example": 6 }
+            }
+          }
         }
       },
       "CreateOrderbookRequest": {
