@@ -34,7 +34,7 @@
             "name": "cursor",
             "in": "query",
             "schema": { "type": "integer" },
-            "description": "Pagination cursor",
+            "description": "Pagination cursor (Order hash from previous page’s `next_cursor`)",
             "example": 10
           },
           {
@@ -240,7 +240,7 @@
             "name": "cursor",
             "in": "query",
             "schema": { "type": "string" },
-            "description": "Pagination cursor",
+            "description": "Pagination cursor (Order hash from previous page’s `next_cursor`)",
             "example": "0xabc123..."
           },
           {
@@ -457,7 +457,7 @@
             "name": "cursor",
             "in": "query",
             "schema": { "type": "integer"},
-            "description": "Pagination cursor",
+            "description": "Pagination cursor (Order hash from previous page’s `next_cursor`)",
             "example": 1736456789000
           },
           {
@@ -519,7 +519,7 @@
             "name": "cursor",
             "in": "query",
             "schema": { "type": "integer", "format": "int64" },
-            "description": "Pagination cursor",
+            "description": "Pagination cursor (Order hash from previous page’s `next_cursor`)",
             "example": 1233
           },
           {

@@ -3,26 +3,3 @@ title: 'Get User Orders'
 openapi: 'POST /users/orders'
 ---
 
-<Note>
-**This endpoint requires JWT authentication:**
-
-1. Sign an authentication message using your Solana account
-2. Receive a JWT, returned as an `auth_token` HttpOnly cookie
-
-The JWT is valid for 14 days. Subsequent requests are authenticated via the cookie; an `Authorization` header is not required.
-
-The user is identified from the JWT - no request body is needed.
-</Note>
-
-## Pagination
-
-This endpoint supports cursor-based pagination:
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `cursor` | string | Order hash from previous page's `next_cursor` |
-| `limit` | integer | Max orders to return (max 1000) |
-
-The response includes `next_cursor` (order hash for next page) and `has_more` (boolean).
-
-

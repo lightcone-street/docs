@@ -282,4 +282,27 @@ before, an account is created automatically.
 
 </Accordion>
 
+<Note>
+**This endpoint requires JWT authentication:**
+
+1. Sign an authentication message using your Solana account
+2. Receive a JWT, returned as an `auth_token` HttpOnly cookie
+
+The JWT is valid for 14 days. Subsequent requests are authenticated via the cookie; an `Authorization` header is not required.
+
+The user is identified from the JWT - no request body is needed.
+</Note>
+
+### Obtaining a JWT
+
+You can authenticate with the API via a message-based signature verification. The `POST /auth/login_or_register_with_message` endpoint verifies a signed payload from a Solana wallet and return a JWT session cookie.
+
+The request body should include:
+1. `message` (the original arbitrary string that was signed)
+2. `signature_bs58` (the signature encoded in base58)
+3. `pubkey_bytes` (the 32-byte public key as an array).
+
+The client signs a message using their Solana wallet's private key, then submits both the original message and signature for server-side verification.
+
+
 
