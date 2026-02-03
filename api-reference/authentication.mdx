@@ -6,9 +6,6 @@ icon: key
 # ACTIVE WIP, DONT TOUCH THIS PAGE, THANKS -- ARAD
 
 <Tip>For most read-only methods, no authentication is required.</Tip>
-<Warning>
-  Never share your private key or commit it to version control. Use environment variables or secure key management systems.
-</Warning>
 
 ---
 
@@ -60,10 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         expiration: 0,
     });
 
-    // Sign (SDK handles hash construction)
     order.sign(&keypair);
 
-    // Submit
     let response = client.submit_order(SubmitOrderRequest {
         maker: keypair.pubkey().to_string(),
         nonce: order.nonce,
@@ -302,7 +297,238 @@ The request body should include:
 2. `signature_bs58` (the signature encoded in base58)
 3. `pubkey_bytes` (the 32-byte public key as an array).
 
-The client signs a message using their Solana wallet's private key, then submits both the original message and signature for server-side verification.
+The client signs a message using their Solana wallet's private key, then submits both the original message and signature for server-side verification and receives the JWT on response header.
 
+### Using the SDK
 
+<Accordion title="(Recommended) Authenticate with SDK">
+
+The SDK handles message generation, signing, and token extraction:
+
+<CodeGroup>
+
+```typescript TypeScript
+import { LightconeClient } from '@lightcone/sdk';
+import { Keypair } from '@solana/web3.js';
+
+// Your wallet keypair
+const keypair = Keypair.generate();
+
+// Initialize client and authenticate
+const client = new LightconeClient({
+  apiUrl: 'https://tapi.lightcone.xyz',
+});
+
+// Authenticate - returns JWT and sets cookie automatically
+const { token, userId } = await client.authenticate(keypair);
+
+// Authenticated requests work automatically
+const orders = await client.getUserOrders();
+```
+
+```python Python
+from lightcone import LightconeClient
+from solders.keypair import Keypair
+
+# Your wallet keypair
+keypair = Keypair()
+
+# Initialize client and authenticate
+client = LightconeClient(api_url="https://tapi.lightcone.xyz")
+
+# Authenticate - returns JWT and sets cookie automatically
+auth_result = client.authenticate(keypair)
+print(f"Authenticated as user: {auth_result.user_id}")
+
+# Authenticated requests work automatically
+orders = client.get_user_orders()
+```
+
+```rust Rust
+use lightcone_sdk::api::LightconeApiClient;
+use solana_sdk::signer::keypair::Keypair;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+
+    // Initialize client
+    let mut client = LightconeApiClient::new("https://tapi.lightcone.xyz");
+
+    // Authenticate - stores JWT internally
+    client.authenticate(&keypair).await?;
+
+    // Authenticated requests work automatically
+    let orders = client.get_user_orders().await?;
+
+    Ok(())
+}
+```
+
+</CodeGroup>
+
+</Accordion>
+
+### Manual Authentication
+
+<Accordion title="(Advanced) Authenticate manually">
+
+If you're not using the SDK, you can authenticate manually by signing a message and calling the login endpoint.
+
+<CodeGroup>
+
+```typescript TypeScript
+import { Keypair } from '@solana/web3.js';
+import nacl from 'tweetnacl';
+import bs58 from 'bs58';
+
+// Your wallet keypair
+const keypair = Keypair.generate();
+
+// 1. Generate sign-in message with timestamp
+const message = `Sign in to Lightcone\n\nTimestamp: ${Date.now()}`;
+
+// 2. Sign the message with Ed25519
+const messageBytes = new TextEncoder().encode(message);
+const signature = nacl.sign.detached(messageBytes, keypair.secretKey);
+const signatureBs58 = bs58.encode(signature);
+
+// 3. Call login endpoint
+const response = await fetch('https://tapi.lightcone.xyz/api/auth/login_or_register_with_message', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    message,
+    signature_bs58: signatureBs58,
+    pubkey_bytes: Array.from(keypair.publicKey.toBytes()),
+  }),
+});
+
+// 4. Extract JWT from Set-Cookie header
+const setCookie = response.headers.get('set-cookie');
+const token = setCookie?.match(/auth_token=([^;]+)/)?.[1];
+
+// 5. Use token in subsequent requests
+const ordersResponse = await fetch('https://tapi.lightcone.xyz/api/users/orders?wallet_address=' + keypair.publicKey.toBase58(), {
+  method: 'POST',
+  headers: { 'Cookie': `auth_token=${token}` },
+});
+
+console.log(await ordersResponse.json());
+```
+
+```python Python
+from solders.keypair import Keypair
+import nacl.signing
+import base58
+import requests
+import time
+
+# Your wallet keypair
+keypair = Keypair()
+
+# 1. Generate sign-in message with timestamp
+message = f"Sign in to Lightcone\n\nTimestamp: {int(time.time() * 1000)}"
+
+# 2. Sign the message with Ed25519
+message_bytes = message.encode('utf-8')
+signature = keypair.sign_message(message_bytes)
+signature_bs58 = base58.b58encode(bytes(signature)).decode('utf-8')
+
+# 3. Call login endpoint
+response = requests.post(
+    'https://tapi.lightcone.xyz/api/auth/login_or_register_with_message',
+    json={
+        'message': message,
+        'signature_bs58': signature_bs58,
+        'pubkey_bytes': list(bytes(keypair.pubkey())),
+    }
+)
+
+# 4. Extract JWT from Set-Cookie header
+token = None
+if 'set-cookie' in response.headers:
+    import re
+    match = re.search(r'auth_token=([^;]+)', response.headers['set-cookie'])
+    if match:
+        token = match.group(1)
+
+# 5. Use token in subsequent requests
+orders_response = requests.post(
+    f'https://tapi.lightcone.xyz/api/users/orders?wallet_address={keypair.pubkey()}',
+    headers={'Cookie': f'auth_token={token}'}
+)
+
+print(orders_response.json())
+```
+
+```rust Rust
+use solana_sdk::{
+    signature::{Keypair, Signer},
+    pubkey::Pubkey,
+};
+use reqwest::header::{HeaderMap, COOKIE, SET_COOKIE};
+use serde_json::json;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+
+    // 1. Generate sign-in message with timestamp
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)?
+        .as_millis();
+    let message = format!("Sign in to Lightcone\n\nTimestamp: {}", timestamp);
+
+    // 2. Sign the message with Ed25519
+    let signature = keypair.sign_message(message.as_bytes());
+    let signature_bs58 = bs58::encode(signature.as_ref()).into_string();
+
+    // 3. Call login endpoint
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://tapi.lightcone.xyz/api/auth/login_or_register_with_message")
+        .json(&json!({
+            "message": message,
+            "signature_bs58": signature_bs58,
+            "pubkey_bytes": keypair.pubkey().to_bytes(),
+        }))
+        .send()
+        .await?;
+
+    // 4. Extract JWT from Set-Cookie header
+    let token = response
+        .headers()
+        .get(SET_COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| {
+            s.split(';')
+                .next()
+                .and_then(|c| c.strip_prefix("auth_token="))
+                .map(|t| t.to_string())
+        })
+        .expect("No auth_token in response");
+
+    // 5. Use token in subsequent requests
+    let wallet = keypair.pubkey().to_string();
+    let orders_response = client
+        .post(format!(
+            "https://tapi.lightcone.xyz/api/users/orders?wallet_address={}",
+            wallet
+        ))
+        .header(COOKIE, format!("auth_token={}", token))
+        .send()
+        .await?;
+
+    println!("{}", orders_response.text().await?);
+    Ok(())
+}
+```
+
+</CodeGroup>
+
+</Accordion>
 

@@ -237,10 +237,18 @@
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           {
+            "name": "wallet_address",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Solana wallet address to fetch orders for",
+            "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK"
+          },
+          {
             "name": "cursor",
             "in": "query",
             "schema": { "type": "string" },
-            "description": "Pagination cursor (Order hash from previous page’s `next_cursor`)",
+            "description": "Pagination cursor (Order hash from previous page's `next_cursor`)",
             "example": "0xabc123..."
           },
           {
@@ -283,6 +291,19 @@
                   "type": "object",
                   "properties": {
                     "error": { "type": "string", "example": "No auth token" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - wallet does not belong to authenticated user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": { "type": "string", "example": "Wallet does not belong to authenticated user" }
                   }
                 }
               }

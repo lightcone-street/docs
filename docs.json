@@ -47,6 +47,7 @@
       },
       {
         "tab": "API Reference",
+        "url": "api-reference/rest-introduction",
         "groups": [
           {
             "group": "REST API",
