@@ -9,40 +9,36 @@ The core premise is simple: **trade (\$XYZ) asset if (Outcome A) is a given.**
 
 With that premise in mind, traders enter positions based on **impact** expectations alone, while disregarding the event's probability of occurrence.
 
-This creates an entirely new design space for portfolio management and trading strategies.
-
----
+**example /cont**
 
 Circling back to our previous example:
 
 
 <Columns cols={2}>
   <Callout icon="r" color="#DC9BF2">
-    **BTC** in the universe where **Republicans win** the 2026 elections
+    Buy or sell **BTC** in the universe where **Republicans win** the 2026 elections
   </Callout>
   <Callout icon="d" color="#45ACF8">
-    **BTC** in the universe where **Democrats win** the 2026 elections
+    Buy or sell **BTC** in the universe where **Democrats win** the 2026 elections
   </Callout>
 </Columns>
 
 
+**into the mechanism's belly**
 
-**how do we make it happen?**\
-**>>into the mechanism's belly**
+Lightcone practically extends Bitcoin into two new wrapper versions of itself, <Badge size ="sm" className="badge-r">**RWin-BTC**</Badge> and <Badge size ="sm" className="badge-d">**DWin-BTC**</Badge>, both of which trade simultaneously but separately. After the elections, one of them will redeem 1:1 to spot <Badge size="sm">**BTC**</Badge>.
 
-For every 1 USDC deposited into the market, two tokens are minted:
+For every 1 BTC deposited into the market, two tokens are minted:
 
-- <Badge size ="sm" className="badge-r">**1 RWin-USDC**</Badge> _(token that converts to real USDC only if Republicans win)_
-- <Badge size ="sm" className="badge-d">**1 DWin-USDC**</Badge> _(token that converts to real USDC only if Democrats win)_
+1. --> <Badge size ="sm" className="badge-r">**1 RWin-BTC**</Badge> _(token that converts to BTC only if Republicans win)_
+2. --> <Badge size ="sm" className="badge-d">**1 DWin-BTC**</Badge> _(token that converts to BTC only if Democrats win)_
 
-Similarly, for every 1 BTC deposited, two tokens are minted:
+Similarly, for every 1 USDC deposited, two tokens are minted:
 
-- <Badge size ="sm" className="badge-r">**1 RWin-BTC**</Badge> _(token that converts to real BTC only if Republicans win)_
-- <Badge size ="sm" className="badge-d">**1 DWin-BTC**</Badge> _(token that converts to real BTC only if Democrats win)_
+1. --> <Badge size ="sm" className="badge-r">**1 RWin-USDC**</Badge> _(token that converts to USDC only if Republicans win)_
+2. --> <Badge size ="sm" className="badge-d">**1 DWin-USDC**</Badge> _(token that converts to USDC only if Democrats win)_
 
-An impact market is created by pairing two of these _universe tokens_ in an orderbook.
-
-So behind the scenes this market creates 4 new assets, trading across 2 different orderbooks:
+An _impact market_ is created by pairing two tokens of the **same universe** against each other in an orderbook:
 
 <Columns cols={2}>
   <Callout icon="r" color="#DC9BF2">
@@ -57,44 +53,109 @@ So behind the scenes this market creates 4 new assets, trading across 2 differen
   </Callout>
 </Columns>
 
-Both pairs trade simultaneously at different floating prices. When the elections conclude, tokens in the winning universe will become redeemable 1:1 for real USDC and BTC, respectively.
+Both pairs trade simultaneously at different exchange rates. Prices are ever-changing, but for the sake of example:
+
+<Columns cols={3}>
+  <Callout icon="r" color="#DC9BF2">
+    <Badge size ="sm" className="badge-r">**RWin-BTC / RWin-USDC**</Badge>\
+    \
+    <Badge size ="xl" className="badge-r">**103,990**</Badge>
+
+  </Callout>
+  <Callout icon="btc" color="#fafafa">
+  Spot BTC
+	external venues
+    
+    $92,186
+  </Callout>
+  <Callout icon="d" color="#45ACF8">
+    <Badge size ="sm" className="badge-d">**DWin-BTC / DWin-USDC**</Badge>\
+    \
+    <Badge size ="xl" className="badge-d">**87,882**</Badge>
+  </Callout>
+</Columns>
+
+
+When the elections conclude, tokens in the winning universe will become redeemable 1:1 for real USDC and BTC, respectively.
 
 Tokens in the losing universe will become irrelevant and worthless.
 
----
+**picking a universe**
 
-**Picking a universe**
+We must emphasize that on lightcone, users don't try to pick the winning universe as they do on prediction markets. The question _"What will happen?"_ doesn't really matter. The only relevant question is _"If this happens, what price should this asset trade at?"_
 
-We must emphasize that on lightcone, users don't try to pick the winning universe as they do on prediction markets. Instead, they decide which universe they want to trade assets _**in.**_
+Effectively, users decide which universe they want to trade assets _**in**_, NOT which universe to bet _on._
 
-In-fact a more accurate term would be a _materliazing universe_ and a _non-materializing universe_.
+It therefore might be confusing to use the terms _"winning"_ and _"losing"_ universes. We can more accurately refer to them as **_materliazing universe_** and a **_non-materializing universe_.**
 
-Since a 1 USDC deposit creates representations of 1 USDC on both sides (in what is called a _split_), users can trade only their <Badge size ="sm" className="badge-r">**RWin**</Badge> tokens, while leaving their <Badge size ="sm" className="badge-d">**DWin**</Badge> tokens as-is -- not taking any position there.
+You can see how **probability is removed from the trade**. You don't care about _whether_ the event happens, only about its impact _if_ it does.
 
-[ILLUSTRATION HERE]
+**how probability is removed**
 
-In that case:
-1. if Republicans win, their <Badge size ="sm" className="badge-r">**RWin**</Badge> balances and trades settle into spot.
-2. If Democrats win, their Republican trades simply won't matter; they will redeem their intact  <Badge size ="sm" className="badge-d">**DWin**</Badge> tokens 1:1 back into their corresponding spot tokens, getting their original deposit back in its entirety! While the <Badge size ="sm" className="badge-r">**RWin**</Badge> token trades did execute onchain, the <Badge size ="sm" className="badge-r">**RWin**</Badge> universe didn't materialize - so for this user, it's practically as if nothing ever happened.
+The key function to be aware of is the **_split_**.
 
-Put another way:
+On the UI, users just clicks Buy or Sell. But there is hidden step before an actual swap occurs - their asset first splits across the full set universes.
 
-You can see how **probability is removed from the trade**. You don't care about _whether_ the event happens, only about its _impact_ if it does.
+For example, a user wants to _**sell 0.55 BTC if the Democrats win**._
 
-```mermaid
-graph TD
-    H{Deposit 100,000 USDC}
-  
-    H -->|Republicans win universe| I(100,000 RWin-USDC)
-    H -->|Democrats lose universe| J(100,000 DWin-USDC)
-    I --> K(BUY 0.75 RWin-BTC at $XX,XXX price)
-    J --> L(...)
-    K --> M(BUY 0.28 RWin-BTC at $YY,YYY price)
-    L --> O(...)
-    O --> P(100,000 DWin-USDC)
-    M --> Q(1.03 RWin-BTC)
-    Q --> |R WIN| W{1.03 RWin-BTC}
-    P --> |D LOSS| W{Redeem 1.03 RWin-BTC to 1.03 BTC}
+Let's walk through what actually happens:
 
-    class H auth
-```
+  <Callout icon="btc" color="#fafafa">
+    <Badge size ="sm" color="gray">**Deposit 0.55 Spot BTC** (Split) --> </Badge>
+  </Callout>
+
+<Columns cols={2}>
+
+  <Callout icon="r" color="#DC9BF2">
+    Balance: <Badge size ="m" className="badge-r">**0.55 RWin-BTC**</Badge>
+  </Callout>
+
+  <Callout icon="d" color="#45ACF8">
+    Balance: <Badge size ="m" className="badge-d">**0.55 DWin-BTC**</Badge>
+  </Callout>
+
+</Columns>
+
+This is fundamentally equal to holding 0.55 spot BTC, because it is guaranteed that at the end of the elections, one of the universe tokens will convert 1:1 to spot BTC. _(Note: because it's fundamentally equal, the protocol supports a reverse function called merge)_
+
+In the next step, the protocol executes an actual swap:
+
+  <Callout icon="d" color="#45ACF8">
+    Swap: <Badge size ="m" className="badge-d">**0.55 DWin-BTC**</Badge> --> <Badge size ="m" className="badge-d">**48,335.1 DWin-USDC**</Badge>
+  </Callout>
+
+    Sold <Badge size ="sm" className="badge-d">**0.55 DWin-BTC**</Badge> at the price of 87,772. <Icon icon="refresh" size={10} /> Update balances:
+<Columns cols={2}>
+  <Callout icon="r" color="#DC9BF2">
+    Balance: <Badge size ="m" className="badge-r">**0.55 RWin-BTC**</Badge>
+  </Callout>
+
+  <Callout icon="d" color="#45ACF8">
+    Balance: <Badge size ="m" className="badge-d">**48,335.1 DWin-USDC**</Badge>
+  </Callout>
+
+</Columns>
+
+So now the user has secured the selling price of 87,772. His trade will materialize if the democrats end up winning, after which he'll redeem `48,335.1 USDC`. If, however, the republicans end up winning, he'll redeem back `0.55 BTC`.
+
+Of course, in the meantime, he can make more trades. Perhaps the market has repriced the democrats impact even further to the downside, down to a price of 83,602. At which point the user wants to buy back in that universe:
+
+  <Callout icon="d" color="#45ACF8">
+    Swap: <Badge size ="m" className="badge-d">**48,335.1 DWin-USDC**</Badge> --> <Badge size ="m" className="badge-d">**0.5782 DWin-BTC**</Badge>
+  </Callout>
+
+Behold his <Icon icon="refresh" size={10} /> updated exposure now:
+
+<Columns cols={2}>
+
+  <Callout icon="r" color="#DC9BF2">
+    Balance: <Badge size ="m" className="badge-r">**0.55 RWin-BTC**</Badge>
+  </Callout>
+
+  <Callout icon="d" color="#45ACF8">
+    Balance: <Badge size ="m" className="badge-d">**0.5782 DWin-BTC**</Badge>
+  </Callout>
+
+</Columns>
+
+This example should give you a feel as to what's possible. Ultimately, lightcone is greenfield primitive for speculation and portfolio management, and we expect it to be used in increasingly interesting and unexpected ways over time _(yes, most obvious of which is hedging, as people love to point out - but think bigger)._
