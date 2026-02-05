@@ -30,9 +30,9 @@
 	  {
             "group": "More",
             "pages": [
-              "learn/more/Terminology",
-              "learn/more/Audits",
-              "learn/more/Brand Kit"
+              "learn/more/terminology",
+              "learn/more/security",
+              "learn/more/brand-assets"
             ]
           }
         ]

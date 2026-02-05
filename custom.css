@@ -15,6 +15,13 @@ color: #45ACF8 !important;
 border-color: #45ACF8 !important;\
 }
 
+.badge-i {
+background-color: #6B550E !important;
+color: #45ACF8 !important;
+border-color: #45ACF8 !important;\
+}
+
+
 /* LIGHT MODE */
 :root:not(.dark) .prose,
 :root:not(.dark) .prose p,
