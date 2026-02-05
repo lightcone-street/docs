@@ -908,7 +908,8 @@
           "filled": { "type": "string", "description": "Filled amount as decimal string", "example": "0.000000" },
           "price": { "type": "string", "description": "Order price as decimal string", "example": "0.600000" },
           "created_at": { "type": "integer", "format": "int64", "example": 1736456789000 },
-          "expiration": { "type": "integer", "format": "int64", "example": 0 }
+          "expiration": { "type": "integer", "format": "int64", "example": 0 },
+          "status": { "type": "string", "description": "Order status: OPEN (resting on book), MATCHING (in-flight tx), FILLED, CANCELLED", "example": "OPEN", "enum": ["OPEN", "MATCHING", "FILLED", "CANCELLED"] }
         }
       },
       "UserPositionsResponse": {

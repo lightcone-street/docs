@@ -6,9 +6,9 @@ description: 'Real-time updates for user orders, fills, and balances'
 ## Overview
 
 The `user` channel provides a unified stream of all user-specific events:
-- Order fills (maker and taker)
-- Order placements (limit orders resting on book)
-- Order cancellations  
+- Order placements (new orders resting on book)
+- Order status changes (matching, partial fills, full fills)
+- Order cancellations
 - Balance updates after deposits/withdrawals
 
 Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
@@ -27,7 +27,8 @@ To subscribe to the user stream, connect with authentication and send:
 {
   "method": "subscribe",
   "params": {
-    "type": "user"
+    "type": "user",
+    "wallet_address": "YOUR_WALLET_ADDRESS"
   }
 }
 ```
@@ -57,7 +58,8 @@ Immediately after subscribing, you receive the user's current state:
         "expiration": 0,
         "base_mint": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
         "quote_mint": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
-        "outcome_index": 0
+        "outcome_index": 0,
+        "status": "OPEN"
       }
     ],
     "balances": {
@@ -84,23 +86,25 @@ Immediately after subscribing, you receive the user's current state:
 }
 ```
 
-## Order Updates
+## Order Events
 
-All order state changes are sent as `order_update` events. The `remaining` field indicates the order state:
-- `remaining > "0"`: Order is still open with that amount on the book
-- `remaining == "0.000000"`: Order is no longer active (fully filled or cancelled)
+Order events come with a `event_type` and `type` fields to distinguish event categories and fill lifecycle.
+
+### Event Structure
 
 ```json
 {
   "type": "user",
   "version": 0.1,
   "data": {
+    "event_type": "order",
+    "type": "PLACEMENT | UPDATE | CANCELLATION",
     "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
     "orderbook_id": "5BNoPgYe_CrhujZLf",
     "timestamp": "2026-01-09T20:43:24.123Z",
-    "event_type": "order_update",
     "order": {
       "order_hash": "0xabc123...",
+      "status": "OPEN | MATCHING | FILLED | CANCELLED",
       "price": "0.650000",
       "fill_amount": "1.000000",
       "remaining": "0.000000",
@@ -117,8 +121,98 @@ All order state changes are sent as `order_update` events. The `remaining` field
 }
 ```
 
-- `remaining > 0`: Order still open on book
-- `remaining == 0`: Order fully filled or cancelled
+### Order Lifecycle
+
+| type | status | Description |
+|------|--------|-------------|
+| `PLACEMENT` | `OPEN` | New order placed on the orderbook |
+| `UPDATE` | `MATCHING` | Order locked for in-flight blockchain transaction |
+| `UPDATE` | `OPEN` | Partial fill completed (order still has remaining) |
+| `UPDATE` | `OPEN` | Transaction failed, order rolled back to open |
+| `UPDATE` | `FILLED` | Order fully filled (remaining = 0) |
+| `CANCELLATION` | `CANCELLED` | Order cancelled by user |
+
+### Status Definitions
+
+- **OPEN**: Order is resting on the orderbook, available for matching
+- **MATCHING**: Order is locked while the solana transaction awaits confirmation
+- **FILLED**: Order has been completely filled (remaining = 0)
+- **CANCELLED**: Order was cancelled by the user
+
+### Example: Order Placement
+
+```json
+{
+  "type": "user",
+  "data": {
+    "event_type": "order",
+    "type": "PLACEMENT",
+    "order": {
+      "order_hash": "0xabc123...",
+      "status": "OPEN",
+      "remaining": "1.000000",
+      "filled": "0.000000",
+      "balance": { ... }
+    }
+  }
+}
+```
+
+### Example: Order Matching (In-Flight Transaction)
+
+```json
+{
+  "type": "user",
+  "data": {
+    "event_type": "order",
+    "type": "UPDATE",
+    "order": {
+      "order_hash": "0xabc123...",
+      "status": "MATCHING",
+      "remaining": "1.000000",
+      "filled": "0.000000"
+    }
+  }
+}
+```
+
+### Example: Order Filled
+
+```json
+{
+  "type": "user",
+  "data": {
+    "event_type": "order",
+    "type": "UPDATE",
+    "order": {
+      "order_hash": "0xabc123...",
+      "status": "FILLED",
+      "remaining": "0.000000",
+      "filled": "1.000000",
+      "balance": { ... }
+    }
+  }
+}
+```
+
+### Example: Order Cancelled
+
+```json
+{
+  "type": "user",
+  "data": {
+    "event_type": "order",
+    "type": "CANCELLATION",
+    "order": {
+      "order_hash": "0xabc123...",
+      "status": "CANCELLED",
+      "remaining": "0.000000",
+      "filled": "0.500000",
+      "balance": { ... }
+    }
+  }
+}
+```
 
 ## Balance Updates
 
@@ -155,11 +249,22 @@ Deposits and withdrawals trigger `balance_update` events:
 
 ## Event Types Summary
 
-| Event Type | Description |
-|------------|-------------|
-| `snapshot` | Initial state with all open orders and balances |
-| `order_update` | Order state change (placed, filled, cancelled) |
-| `balance_update` | Balance change from deposit/withdrawal |
+| Event | Type | Description |
+|------------|------|-------------|
+| `snapshot` | - | Initial state with all open orders and balances |
+| `order` | `PLACEMENT` | New order placed on book |
+| `order` | `UPDATE` | Order status change (matching, filled, partial fill) |
+| `order` | `CANCELLATION` | Order cancelled by user |
+| `balance_update` | - | Balance change from deposit/withdrawal |
+
+## Order Status Summary
+
+| status | Description |
+|--------|-------------|
+| `OPEN` | Order resting on orderbook |
+| `MATCHING` | Order locked for in-flight transaction |
+| `FILLED` | Order fully filled |
+| `CANCELLED` | Order cancelled |
 
 ## Unsubscribe
 
