@@ -3,13 +3,25 @@ title: "FAQ"
 sidebarTitle: "FAQ"
 ---
 
+⟩⟩ **what if i buy or sell something on one universe, and then that universe "loses" - do i lose money?**
+
+No, you don't lose anything! Instead you receive back your original capital exactly. This is where impact markets differ so radically from prediction markets.
+
+Your trades only materialize _if_ the universe you took a trade materializes in reality. Otherwise, your capital is returned as if nothing happened.
+
+For example, you spent 25,000 USDC to buy <Badge size ="sm" className="badge-r">**RWin-BTC**</Badge> but the Democrats end up winning the elections, so you'll get back 25,000 USDC. Or, if you sold 400 SOL for <Badge size ="sm" className="badge-r">**RWin-USDC**</Badge> you'll get back 400 SOL.
+
+⟩⟩ **how is this possible? sounds like the whole thing can blow up** (WIP)
+
+All claims to the underlying remain fully backed at all times. There is no possible scenario in which price movements can cause the protocol to become insolvent. In fact, the protocol isn't even aware of any prices trading on lightcone or outside of it. Prices are merely the product of the P2P exchange rate between conditional tokens. The lightcone protocol only handles the minting, burning and swapping of those conditional tokens, and is not aware of the prices they trade at.
+
 ⟩⟩ **does lightcone take fees?**
 
-No, 0 fees.
+No fees!
 
 ⟩⟩ **how do you resolve markets? is there an oracle?**
 
-In-house; no external oracles are involved. If you want to understand why, read more here (_tldr; oracles are about useless for arbitrary data such as events' outcome resolution)_
+In-house; no external oracles are involved. If you want to understand why, read more -> 
 
 <Frame>
   <a href="https://x.com/aradtski/status/1949977296523145695" target="_blank" rel="noopener">
@@ -17,6 +29,8 @@ In-house; no external oracles are involved. If you want to understand why, read 
 
   </a>
 </Frame>
+
+(_tldr; oracles are ~useless for arbitrary data such as events' outcome resolution)_
 
 ⟩⟩ **can I earn yield on my position while waiting for a market to settle?**
 
@@ -26,7 +40,7 @@ Not at the moment, but we're working on it!
 
 Start by noting that low volumes do not guarantee a mispricing exists; the relation between accuracy and volume is one of correlation rather than causation. At times, volume can be low precisely _because_ the current price is fair. In those cases, little trading happens until the equilibrium is broken and contention get (re)introduced into the orderbooks, bringing volume with it.
 
-Secondly, when mispricings do exist, they're a crticial part of a positive reflexive cycle.
+Secondly, when mispricings do exist, they're a critical part of a positive reflexive cycle.
 
 When users identify what they believe is a mispriced asset, that's money on the grund and they're incentivized to take advantage of it! This, in-turn, increases the market's activity, which in-turn increases the accuracy of the information, which in-turn makes lightcone's information a more valuable and shareable source, which in-turn brings more eyes on potentially mispriced markets, and so on and so forth, ultimately making lightcone a better platform to both trade and consume.
 
@@ -36,7 +50,7 @@ Thirdly, we plan to empirically measure the platform's accuracy and publish the 
 
 Lightcone facilitates fundamentally novel price discovery, so there's no easy way to market-make while staying comfortably delta-neutral amongst several venues, as is the case with the 114th perps exchange competitor. This means we have to take the long hard road of cultivating a healthy ecosystem of profitable MMs. In the early days, people like you can come in, develop new methods of analysis and risk management that are specific to impact markets, and profit by capturing spread from traders. We believe an early start as a MM'er will prove worthwhile, and is currently the best way to bet on Lightcone's growth as an outsider. <u>Contact us</u> for white-glove onboarding.
 
-With that said; there are multiple reasons why impact markets are vastly more tractable and forgiving to market-make than prediction markets. Read more our reply here:
+With that said; there are multiple reasons why impact markets are vastly more tractable and forgiving to market-make than prediction markets. Read more here ->
 
 <Frame>
   <a href="https://x.com/aradtski/status/1999506317250023793" target="_blank" rel="noopener">
@@ -47,6 +61,6 @@ With that said; there are multiple reasons why impact markets are vastly more tr
 
 ⟩⟩ **do you geo-block my region?**
 
-Lightcone's Webapp and API restrict usage from the following jurisdictions: U.S., Cuba, Iran, Syria, North Korea, Myanmar, and certain Russian-occupied regions of Ukraine. Fix your countries.
+Lightcone's webapp and API restrict usage from the following jurisdictions: U.S., Cuba, Iran, Syria, North Korea, Myanmar, and certain Russian-occupied regions of Ukraine. Fix your country, folks.
 
 
