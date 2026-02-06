@@ -375,7 +375,7 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Cancel order",
-        "description": "Cancel a specific order by its hash.",
+        "description": "Cancel a specific order by its hash",
         "requestBody": {
           "required": true,
           "content": {
@@ -405,7 +405,7 @@
       "post": {
         "tags": ["Orders"],
         "summary": "Cancel all orders",
-        "description": "Cancel all orders for a user.",
+        "description": "Cancel all orders for a user",
         "requestBody": {
           "required": true,
           "content": {
@@ -881,18 +881,21 @@
       },
       "CancelOrderRequest": {
         "type": "object",
-        "required": ["order_hash", "maker"],
+        "required": ["order_hash", "maker", "signature"],
         "properties": {
-          "order_hash": { "type": "string", "example": "0xabc123def456..." },
-          "maker": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" }
+          "order_hash": { "type": "string", "description": "Order hash as returned by the submit order endpoint", "example": "abc123def456..." },
+          "maker": { "type": "string", "description": "Order maker's public key", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+          "signature": { "type": "string", "description": "Ed25519 signature of the order_hash string. Check the authentication page for more details.", "example": "01020304..." }
         }
       },
       "CancelAllOrdersRequest": {
         "type": "object",
-        "required": ["user_pubkey"],
+        "required": ["user_pubkey", "signature", "timestamp"],
         "properties": {
-          "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-          "market_pubkey": { "type": "string", "nullable": true, "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" }
+          "user_pubkey": { "type": "string", "description": "User's public key (Base58)", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+          "market_pubkey": { "type": "string", "nullable": true, "description": "Optional: limit cancellation to a specific market", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "signature": { "type": "string", "description": "Ed25519 signature of the  \"cancel_all:<user_pubkey>:<timestamp>\" string", "example": "01020304..." },
+          "timestamp": { "type": "integer", "format": "int64", "description": "Unix timestamp in seconds. Must be within 30 seconds of present time for replay protection.", "example": 1700000000 }
         }
       },
       "Order": {

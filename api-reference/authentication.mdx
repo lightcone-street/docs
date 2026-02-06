@@ -19,9 +19,9 @@ Required for:
 
 To submit or cancel orders, you must include an Ed25519 signature signed by the relevant Solana account. It cryptographically binds the order to the wallet's ownership, ensuring orders cannot be manipulated.
 
-1. **Create an order payload** with all required fields
+1. **Construct the payload** with all required fields
 2. **Sign the payload** using Ed25519 with your account's keypair
-3. **Include the signature** in the request as a base58-encoded string
+3. **Include the signature** in the request as a hex-encoded string
 
 ### Using the SDK
 
@@ -29,7 +29,7 @@ To submit or cancel orders, you must include an Ed25519 signature signed by the 
 <Accordion title="(Recommended) Sign payload with client">
 
 
-The SDK handles the 161-byte payload construction, hashing and signing:
+#### Create Order
 
 <CodeGroup>
 
@@ -79,6 +79,63 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 </CodeGroup>
 
+#### Cancel Order
+
+<CodeGroup>
+
+```rust Rust
+// order_hash is returned by the submit order endpoint
+let cancel_result = client.cancel_order(
+    "your_order_hash",
+    &keypair,
+).await?;
+```
+
+```typescript TypeScript
+// order_hash is returned by the submit order endpoint
+const cancelResult = await client.cancelOrder({
+  orderHash: "your_order_hash",
+  maker: keypair.publicKey.toBase58(),
+}, keypair);
+```
+
+```python Python
+# order_hash is returned by the submit order endpoint
+cancel_result = client.cancel_order(
+    order_hash="your_order_hash",
+    maker=str(keypair.pubkey()),
+    keypair=keypair,
+)
+```
+
+</CodeGroup>
+
+#### Cancel All Orders
+
+<CodeGroup>
+
+```rust Rust
+let cancel_all_result = client.cancel_all_orders(
+    "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    &keypair,
+).await?;
+```
+
+```typescript TypeScript
+const cancelAllResult = await client.cancelAllOrders({
+  marketPubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+}, keypair);
+```
+
+```python Python
+cancel_all_result = client.cancel_all_orders(
+    market_pubkey="FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    keypair=keypair,
+)
+```
+
+</CodeGroup>
+
 </Accordion>
 
 
@@ -87,6 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 <Accordion title="(Advanced) Sign payload manually">
 
+#### Create Order
 
 Orders are signed with Ed25519 over a Keccak256 hash of a 161-byte payload, structured as follows.
 
@@ -109,8 +167,6 @@ Offset  Size  Field
 <Note>
 `maker_amount` and `taker_amount` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
 </Note>
-
-Code example:
 
 <CodeGroup>
 
@@ -165,7 +221,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```typescript TypeScript
 import { Keypair } from '@solana/web3.js';
-import bs58 from 'bs58';
 import nacl from 'tweetnacl';
 
 // Your wallet keypair
@@ -188,13 +243,13 @@ const order = {
 // Sign the order
 const message = Buffer.from(JSON.stringify(order));
 const signature = nacl.sign.detached(message, keypair.secretKey);
-const signatureBase58 = bs58.encode(signature);
+const signatureHex = Buffer.from(signature).toString('hex');
 
 // Submit order
 const response = await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ ...order, signature: signatureBase58 })
+  body: JSON.stringify({ ...order, signature: signatureHex })
 });
 
 console.log(await response.json());
@@ -202,10 +257,8 @@ console.log(await response.json());
 
 ```python Python
 from solders.keypair import Keypair
-from solders.signature import Signature
 import requests
 import json
-import base58
 
 # Your wallet keypair
 keypair = Keypair()
@@ -227,16 +280,178 @@ order = {
 # Sign the order
 message = json.dumps(order).encode()
 signature = keypair.sign_message(message)
-signature_base58 = base58.b58encode(bytes(signature)).decode()
+signature_hex = bytes(signature).hex()
 
 # Submit order
-order["signature"] = signature_base58
+order["signature"] = signature_hex
 response = requests.post(
     "https://tapi.lightcone.xyz/api/orders/submit",
     json=order
 )
 
 print(response.json())
+```
+
+</CodeGroup>
+
+#### Cancel Order
+
+To cancel a single order, sign the `order_hash` (returned by the submit order endpoint) as UTF-8 bytes:
+
+<CodeGroup>
+
+```rust Rust
+// order_hash is returned by the submit order endpoint
+let order_hash = "abc123..."; // 64-char hex string
+
+// Sign the order hash string as UTF-8 bytes
+let signature = keypair.sign_message(order_hash.as_bytes());
+let signature_hex = hex::encode(signature.as_ref());
+
+// Cancel order
+let response = client
+    .post("https://tapi.lightcone.xyz/api/orders/cancel")
+    .json(&json!({
+        "order_hash": order_hash,
+        "maker": keypair.pubkey().to_string(),
+        "signature": signature_hex,
+    }))
+    .send()
+    .await?;
+```
+
+```typescript TypeScript
+import nacl from 'tweetnacl';
+
+// order_hash is returned by the submit order endpoint
+const orderHash = "abc123..."; // 64-char hex string
+
+// Sign the order hash string as UTF-8 bytes
+const signature = nacl.sign.detached(
+  Buffer.from(orderHash, 'utf-8'),
+  keypair.secretKey
+);
+const signatureHex = Buffer.from(signature).toString('hex');
+
+// Cancel order
+const response = await fetch('https://tapi.lightcone.xyz/api/orders/cancel', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    order_hash: orderHash,
+    maker: keypair.publicKey.toBase58(),
+    signature: signatureHex,
+  }),
+});
+```
+
+```python Python
+from solders.keypair import Keypair
+import requests
+
+# order_hash is returned by the submit order endpoint
+order_hash = "abc123..."  # 64-char hex string
+
+# Sign the order hash string as UTF-8 bytes
+signature = keypair.sign_message(order_hash.encode('utf-8'))
+signature_hex = bytes(signature).hex()
+
+# Cancel order
+response = requests.post(
+    "https://tapi.lightcone.xyz/api/orders/cancel",
+    json={
+        "order_hash": order_hash,
+        "maker": str(keypair.pubkey()),
+        "signature": signature_hex,
+    }
+)
+```
+
+</CodeGroup>
+
+#### Cancel All Orders
+
+To cancel all orders, sign the string `"cancel_all:<user_pubkey>:<timestamp>"` where `timestamp` is the current Unix time in seconds. The timestamp must be within 30 seconds of present time.
+
+<CodeGroup>
+
+```rust Rust
+use std::time::{SystemTime, UNIX_EPOCH};
+
+// Build the cancel_all message
+let timestamp = SystemTime::now()
+    .duration_since(UNIX_EPOCH)?
+    .as_secs() as i64;
+let message = format!("cancel_all:{}:{}", keypair.pubkey(), timestamp);
+
+// Sign the message as UTF-8 bytes
+let signature = keypair.sign_message(message.as_bytes());
+let signature_hex = hex::encode(signature.as_ref());
+
+// Cancel all orders
+let response = client
+    .post("https://tapi.lightcone.xyz/api/orders/cancel-all")
+    .json(&json!({
+        "user_pubkey": keypair.pubkey().to_string(),
+        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "signature": signature_hex,
+        "timestamp": timestamp,
+    }))
+    .send()
+    .await?;
+```
+
+```typescript TypeScript
+import nacl from 'tweetnacl';
+
+// Build the cancel_all message
+const timestamp = Math.floor(Date.now() / 1000);
+const message = `cancel_all:${keypair.publicKey.toBase58()}:${timestamp}`;
+
+// Sign the message as UTF-8 bytes
+const signature = nacl.sign.detached(
+  Buffer.from(message, 'utf-8'),
+  keypair.secretKey
+);
+const signatureHex = Buffer.from(signature).toString('hex');
+
+// Cancel all orders
+const response = await fetch('https://tapi.lightcone.xyz/api/orders/cancel-all', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    user_pubkey: keypair.publicKey.toBase58(),
+    market_pubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    signature: signatureHex,
+    timestamp,
+  }),
+});
+```
+
+```python Python
+import time
+from solders.keypair import Keypair
+import requests
+
+# Build the cancel_all message
+timestamp = int(time.time())
+pubkey = str(keypair.pubkey())
+message = f"cancel_all:{pubkey}:{timestamp}"
+
+# Sign the message as UTF-8 bytes
+signature = keypair.sign_message(message.encode('utf-8'))
+signature_hex = bytes(signature).hex()
+
+# Cancel all orders
+response = requests.post(
+    "https://tapi.lightcone.xyz/api/orders/cancel-all",
+    json={
+        "user_pubkey": pubkey,
+        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "signature": signature_hex,
+        "timestamp": timestamp,
+    }
+)
 ```
 
 </CodeGroup>
@@ -307,6 +522,28 @@ The SDK handles message generation, signing, and token extraction:
 
 <CodeGroup>
 
+```rust Rust
+use lightcone_sdk::api::LightconeApiClient;
+use solana_sdk::signer::keypair::Keypair;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+
+    // Initialize client
+    let mut client = LightconeApiClient::new("https://tapi.lightcone.xyz");
+
+    // Authenticate - stores JWT internally
+    client.authenticate(&keypair).await?;
+
+    // Authenticated requests work automatically
+    let orders = client.get_user_orders().await?;
+
+    Ok(())
+}
+```
+
 ```typescript TypeScript
 import { LightconeClient } from '@lightcone/sdk';
 import { Keypair } from '@solana/web3.js';
@@ -344,28 +581,6 @@ print(f"Authenticated as user: {auth_result.user_id}")
 orders = client.get_user_orders()
 ```
 
-```rust Rust
-use lightcone_sdk::api::LightconeApiClient;
-use solana_sdk::signer::keypair::Keypair;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Your wallet keypair
-    let keypair = Keypair::new();
-
-    // Initialize client
-    let mut client = LightconeApiClient::new("https://tapi.lightcone.xyz");
-
-    // Authenticate - stores JWT internally
-    client.authenticate(&keypair).await?;
-
-    // Authenticated requests work automatically
-    let orders = client.get_user_orders().await?;
-
-    Ok(())
-}
-```
-
 </CodeGroup>
 
 </Accordion>
@@ -377,6 +592,71 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 If you're not using the SDK, you can authenticate manually by signing a message and calling the login endpoint.
 
 <CodeGroup>
+
+```rust Rust
+use solana_sdk::{
+    signature::{Keypair, Signer},
+    pubkey::Pubkey,
+};
+use reqwest::header::{HeaderMap, COOKIE, SET_COOKIE};
+use serde_json::json;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Your wallet keypair
+    let keypair = Keypair::new();
+
+    // 1. Generate sign-in message with timestamp
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)?
+        .as_millis();
+    let message = format!("Sign in to Lightcone\n\nTimestamp: {}", timestamp);
+
+    // 2. Sign the message with Ed25519
+    let signature = keypair.sign_message(message.as_bytes());
+    let signature_bs58 = bs58::encode(signature.as_ref()).into_string();
+
+    // 3. Call login endpoint
+    let client = reqwest::Client::new();
+    let response = client
+        .post("https://tapi.lightcone.xyz/api/auth/login_or_register_with_message")
+        .json(&json!({
+            "message": message,
+            "signature_bs58": signature_bs58,
+            "pubkey_bytes": keypair.pubkey().to_bytes(),
+        }))
+        .send()
+        .await?;
+
+    // 4. Extract JWT from Set-Cookie header
+    let token = response
+        .headers()
+        .get(SET_COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| {
+            s.split(';')
+                .next()
+                .and_then(|c| c.strip_prefix("auth_token="))
+                .map(|t| t.to_string())
+        })
+        .expect("No auth_token in response");
+
+    // 5. Use token in subsequent requests
+    let wallet = keypair.pubkey().to_string();
+    let orders_response = client
+        .post(format!(
+            "https://tapi.lightcone.xyz/api/users/orders?wallet_address={}",
+            wallet
+        ))
+        .header(COOKIE, format!("auth_token={}", token))
+        .send()
+        .await?;
+
+    println!("{}", orders_response.text().await?);
+    Ok(())
+}
+```
 
 ```typescript TypeScript
 import { Keypair } from '@solana/web3.js';
@@ -463,72 +743,8 @@ orders_response = requests.post(
 print(orders_response.json())
 ```
 
-```rust Rust
-use solana_sdk::{
-    signature::{Keypair, Signer},
-    pubkey::Pubkey,
-};
-use reqwest::header::{HeaderMap, COOKIE, SET_COOKIE};
-use serde_json::json;
-use std::time::{SystemTime, UNIX_EPOCH};
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Your wallet keypair
-    let keypair = Keypair::new();
-
-    // 1. Generate sign-in message with timestamp
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)?
-        .as_millis();
-    let message = format!("Sign in to Lightcone\n\nTimestamp: {}", timestamp);
-
-    // 2. Sign the message with Ed25519
-    let signature = keypair.sign_message(message.as_bytes());
-    let signature_bs58 = bs58::encode(signature.as_ref()).into_string();
-
-    // 3. Call login endpoint
-    let client = reqwest::Client::new();
-    let response = client
-        .post("https://tapi.lightcone.xyz/api/auth/login_or_register_with_message")
-        .json(&json!({
-            "message": message,
-            "signature_bs58": signature_bs58,
-            "pubkey_bytes": keypair.pubkey().to_bytes(),
-        }))
-        .send()
-        .await?;
-
-    // 4. Extract JWT from Set-Cookie header
-    let token = response
-        .headers()
-        .get(SET_COOKIE)
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| {
-            s.split(';')
-                .next()
-                .and_then(|c| c.strip_prefix("auth_token="))
-                .map(|t| t.to_string())
-        })
-        .expect("No auth_token in response");
-
-    // 5. Use token in subsequent requests
-    let wallet = keypair.pubkey().to_string();
-    let orders_response = client
-        .post(format!(
-            "https://tapi.lightcone.xyz/api/users/orders?wallet_address={}",
-            wallet
-        ))
-        .header(COOKIE, format!("auth_token={}", token))
-        .send()
-        .await?;
-
-    println!("{}", orders_response.text().await?);
-    Ok(())
-}
-```
-
 </CodeGroup>
 
 </Accordion>
+
 

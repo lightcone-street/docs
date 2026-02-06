@@ -18,8 +18,7 @@ border-color: #45ACF8 !important;\
 /* LIGHT MODE */
 :root:not(.dark) .prose,
 :root:not(.dark) .prose p,
-:root:not(.dark) .prose li,
-:root:not(.dark) .prose span {
+:root:not(.dark) .prose li {
   color: #4B5563 !important;
 }
 
@@ -31,8 +30,7 @@ border-color: #45ACF8 !important;\
 /* DARK MODE */
 :root.dark .prose,
 :root.dark .prose p,
-:root.dark .prose li,
-:root.dark .prose span {
+:root.dark .prose li {
   color: #D5D5D5 !important;
 }
 

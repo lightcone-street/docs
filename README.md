@@ -92,7 +92,7 @@ Changes are automatically deployed when pushed to the default branch via Mintlif
 
 - [Mintlify Documentation](https://mintlify.com/docs)
 - [Lightcone Website](https://lightcone.xyz)
-- [API Reference](https://docs.lightcone.xyz/api-reference/rest-overview)
+- [API Reference](https://docs.lightcone.xyz/api-reference/rest-introduction)
 
 ## 🤝 Contributing
 
