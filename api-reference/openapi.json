@@ -893,9 +893,9 @@
         "required": ["user_pubkey", "signature", "timestamp"],
         "properties": {
           "user_pubkey": { "type": "string", "description": "User's public key (Base58)", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-          "market_pubkey": { "type": "string", "nullable": true, "description": "Optional: limit cancellation to a specific market", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "orderbook_id": { "type": "string", "nullable": true, "description": "Optional: limit cancellation to a specific orderbook", "example": "5BNoPgYe_CrhujZLf" },
           "signature": { "type": "string", "description": "Ed25519 signature of the  \"cancel_all:<user_pubkey>:<timestamp>\" string", "example": "01020304..." },
-          "timestamp": { "type": "integer", "format": "int64", "description": "Unix timestamp in seconds. Must be within 30 seconds of present time for replay protection.", "example": 1700000000 }
+          "timestamp": { "type": "integer", "format": "int64", "description": "Unix timestamp in seconds, included in the signed message for replay protection.", "example": 1700000000 }
         }
       },
       "Order": {

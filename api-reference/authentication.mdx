@@ -93,19 +93,12 @@ let cancel_result = client.cancel_order(
 
 ```typescript TypeScript
 // order_hash is returned by the submit order endpoint
-const cancelResult = await client.cancelOrder({
-  orderHash: "your_order_hash",
-  maker: keypair.publicKey.toBase58(),
-}, keypair);
+const cancelResult = await client.cancelOrder("your_order_hash", keypair);
 ```
 
 ```python Python
 # order_hash is returned by the submit order endpoint
-cancel_result = client.cancel_order(
-    order_hash="your_order_hash",
-    maker=str(keypair.pubkey()),
-    keypair=keypair,
-)
+cancel_result = client.cancel_order("your_order_hash", keypair)
 ```
 
 </CodeGroup>
@@ -115,21 +108,24 @@ cancel_result = client.cancel_order(
 <CodeGroup>
 
 ```rust Rust
+// orderbook_id (optional) — scope cancellation to a single orderbook if added
 let cancel_all_result = client.cancel_all_orders(
-    "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    Some(orderbook_id),
     &keypair,
 ).await?;
 ```
 
 ```typescript TypeScript
+// orderbook_id (optional) — scope cancellation to a single orderbook
 const cancelAllResult = await client.cancelAllOrders({
-  marketPubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+  orderbookId: orderbookId,
 }, keypair);
 ```
 
 ```python Python
+# orderbook_id (optional) — scope cancellation to a single orderbook
 cancel_all_result = client.cancel_all_orders(
-    market_pubkey="FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    orderbook_id=orderbook_id,
     keypair=keypair,
 )
 ```
@@ -371,7 +367,7 @@ response = requests.post(
 
 #### Cancel All Orders
 
-To cancel all orders, sign the string `"cancel_all:<user_pubkey>:<timestamp>"` where `timestamp` is the current Unix time in seconds. The timestamp must be within 30 seconds of present time.
+To cancel all orders, sign the string `"cancel_all:<user_pubkey>:<timestamp>"` where `timestamp` is the current Unix time in seconds.
 
 <CodeGroup>
 
@@ -393,7 +389,7 @@ let response = client
     .post("https://tapi.lightcone.xyz/api/orders/cancel-all")
     .json(&json!({
         "user_pubkey": keypair.pubkey().to_string(),
-        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "orderbook_id": "5BNoPgYe_CrhujZLf",
         "signature": signature_hex,
         "timestamp": timestamp,
     }))
@@ -421,7 +417,7 @@ const response = await fetch('https://tapi.lightcone.xyz/api/orders/cancel-all',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     user_pubkey: keypair.publicKey.toBase58(),
-    market_pubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    orderbook_id: "5BNoPgYe_CrhujZLf",
     signature: signatureHex,
     timestamp,
   }),
@@ -447,7 +443,7 @@ response = requests.post(
     "https://tapi.lightcone.xyz/api/orders/cancel-all",
     json={
         "user_pubkey": pubkey,
-        "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+        "orderbook_id": "5BNoPgYe_CrhujZLf",
         "signature": signature_hex,
         "timestamp": timestamp,
     }
