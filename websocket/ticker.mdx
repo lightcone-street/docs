@@ -1,11 +1,11 @@
 ---
 title: 'Ticker'
-description: 'Event-driven best bid, best ask, and midpoint updates'
+description: 'Midpoint updates'
 ---
 
 ## Overview
 
-The `ticker` channel provides the current best bid, best ask, and midpoint price for an orderbook. Updates are **event-driven** — a message is only sent when the top-of-book changes, not on a fixed interval.
+The `ticker` channel provides the current best bid, best ask, and midpoint price for an orderbook. This endpoints only sends message when the top-of-book changes, not on a fixed interval.
 
 All prices are returned as **decimal strings** (e.g., `"0.65000000"`). Fields are `null` when a side is empty. `mid` is `null` when either side is empty.
 
