@@ -1,0 +1,96 @@
+---
+title: 'Ticker'
+description: 'Event-driven best bid, best ask, and midpoint updates'
+---
+
+## Overview
+
+The `ticker` channel provides the current best bid, best ask, and midpoint price for an orderbook. Updates are **event-driven** — a message is only sent when the top-of-book changes, not on a fixed interval.
+
+All prices are returned as **decimal strings** (e.g., `"0.65000000"`). Fields are `null` when a side is empty. `mid` is `null` when either side is empty.
+
+## Subscribe
+
+```json
+{
+  "method": "subscribe",
+  "params": {
+    "type": "ticker",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```
+
+### Parameters
+
+<ParamField path="orderbook_ids" type="string[]" required>
+  Array of orderbook IDs to subscribe to. You can subscribe to multiple orderbooks with one request, up to a maximum of **100 per request**. To track more than 100 orderbooks, open additional concurrent WebSocket connections.
+</ParamField>
+
+## Messages
+
+### Initial Snapshot
+
+On subscribe, you immediately receive the current BBO for each orderbook:
+
+```json
+{
+  "type": "ticker",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "best_bid": "0.650000",
+    "best_ask": "0.660000",
+    "mid": "0.655000",
+    "timestamp": "2026-02-09T12:00:00Z"
+  }
+}
+```
+
+### BBO Change Updates
+
+Subsequent messages are sent only when the best bid or best ask price changes:
+
+```json
+{
+  "type": "ticker",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "best_bid": "0.655000",
+    "best_ask": "0.660000",
+    "mid": "0.657500",
+    "timestamp": "2026-02-09T12:00:01Z"
+  }
+}
+```
+
+### Empty Side
+
+When one side of the book is empty, the corresponding field is `null`:
+
+```json
+{
+  "type": "ticker",
+  "version": 0.1,
+  "data": {
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "best_bid": "0.650000",
+    "best_ask": null,
+    "mid": null,
+    "timestamp": "2026-02-09T12:00:02Z"
+  }
+}
+```
+
+## Unsubscribe
+
+```json
+{
+  "method": "unsubscribe",
+  "params": {
+    "type": "ticker",
+    "orderbook_ids": ["5BNoPgYe_CrhujZLf"]
+  }
+}
+```

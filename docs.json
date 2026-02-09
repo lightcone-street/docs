@@ -85,7 +85,8 @@
               "websocket/trades",
               "websocket/user-stream",
               "websocket/price-history",
-              "websocket/market-events"
+              "websocket/market-events",
+              "websocket/ticker"
             ]
           }
         ]

@@ -24,7 +24,7 @@ All prices and sizes are returned as **decimal strings** (e.g., `"0.65"`, `"1.5"
 ### Parameters
 
 <ParamField path="orderbook_ids" type="string[]" required>
-  Array of orderbook IDs to receive trades from
+  Array of orderbook IDs to receive trades from. Maximum **100 per request**. To track more than 100 orderbooks, open additional concurrent WebSocket connections.
 </ParamField>
 
 ## Messages
