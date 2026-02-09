@@ -81,12 +81,12 @@
             "pages": [
               "websocket/overview",
               "websocket/authentication",
+              "websocket/ticker",
+              "websocket/price-history",
               "websocket/orderbook-updates",
               "websocket/trades",
               "websocket/user-stream",
-              "websocket/price-history",
-              "websocket/market-events",
-              "websocket/ticker"
+              "websocket/market-events"
             ]
           }
         ]
