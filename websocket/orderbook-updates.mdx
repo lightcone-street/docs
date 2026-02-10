@@ -7,7 +7,7 @@ description: 'Real-time orderbook data stream'
 
 The `book_update` channel provides efficient orderbook updates:
 1. **Initial snapshot** with full orderbook state on subscribe
-2. **Delta updates** every 50ms with only changed price levels
+2. **Delta updates** with changed price levels
 
 All prices and sizes are returned as **decimal strings** (e.g., `"0.65"`, `"100.5"`) matching the REST API format.
 
