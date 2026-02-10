@@ -20,7 +20,9 @@ Orders require Ed25519 signatures over a 161-byte message hash.
 
 The SDK handles the 161-byte message hash construction and signing:
 
-```rust
+<CodeGroup>
+
+```rust Rust
 use lightcone_sdk::program::{FullOrder, BidOrderParams};
 use lightcone_sdk::api::{LightconeApiClient, SubmitOrderRequest};
 use solana_sdk::signer::{keypair::Keypair, Signer};
@@ -65,6 +67,75 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+
+```typescript TypeScript
+import { LightconeApiClient } from "@lightcone/sdk/api";
+import {
+  createSignedBidOrder,
+  toSubmitRequest,
+} from "@lightcone/sdk/program";
+import { Keypair, PublicKey } from "@solana/web3.js";
+
+const keypair = Keypair.generate();
+const client = new LightconeApiClient("https://tapi.lightcone.xyz");
+
+// Create and sign order (buying base token with quote token)
+const order = createSignedBidOrder(
+  {
+    nonce: Date.now() % 0xffffffff,
+    maker: keypair.publicKey,
+    market: new PublicKey(marketPda),
+    baseMint: new PublicKey(baseToken),   // e.g., RWin-BTC
+    quoteMint: new PublicKey(quoteToken), // e.g., RWin-USDC
+    makerAmount: 650_000n,   // quote tokens you give (6 decimals)
+    takerAmount: 1_000_000n, // base tokens you receive (6 decimals)
+    expiration: 0n,
+  },
+  keypair
+);
+
+// Submit (SDK handles hash construction)
+const response = await client.submitOrder(
+  toSubmitRequest(order, "orderbook_id")
+);
+```
+
+```python Python
+from lightcone_sdk.api import LightconeApiClient
+from lightcone_sdk.program import (
+    create_signed_bid_order,
+    BidOrderParams,
+    to_submit_request,
+)
+from solders.keypair import Keypair
+from solders.pubkey import Pubkey
+import time
+
+keypair = Keypair()
+client = LightconeApiClient("https://tapi.lightcone.xyz")
+
+# Create and sign order (buying base token with quote token)
+order = create_signed_bid_order(
+    BidOrderParams(
+        nonce=int(time.time() * 1000) % 0xFFFFFFFF,
+        maker=keypair.pubkey(),
+        market=Pubkey.from_string(market_pda),
+        base_mint=Pubkey.from_string(base_token),   # e.g., RWin-BTC
+        quote_mint=Pubkey.from_string(quote_token),  # e.g., RWin-USDC
+        maker_amount=650_000,    # quote tokens you give (6 decimals)
+        taker_amount=1_000_000,  # base tokens you receive (6 decimals)
+        expiration=0,
+    ),
+    keypair,
+)
+
+# Submit (SDK handles hash construction)
+response = await client.submit_order(
+    to_submit_request(order, "orderbook_id")
+)
+```
+
+</CodeGroup>
 
 ## Order Hash Structure
 
