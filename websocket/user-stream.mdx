@@ -10,6 +10,7 @@ The `user` channel provides a unified stream of all user-specific events:
 - Order status changes (matching, partial fills, full fills)
 - Order cancellations
 - Balance updates after deposits/withdrawals
+- Nonce updates (when `incrementNonce` is called on-chain)
 
 Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
 
@@ -247,6 +248,23 @@ Deposits and withdrawals trigger `balance_update` events:
 }
 ```
 
+## Nonce Updates
+
+When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This cancels **all open orders across all markets** that were placed with a nonce below the new value. No individual order cancellation events are sent — the client should treat this as a bulk cancel of all existing orders.
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "event_type": "nonce",
+    "user_pubkey": "EzW4uwQfdzvqG51vvCrLxjvrZ2vyDpWndAV3YZuaV8if",
+    "new_nonce": 5,
+    "timestamp": "2026-01-09T20:43:24.123Z"
+  }
+}
+```
+
 ## Event Types Summary
 
 | Event | Type | Description |
@@ -256,6 +274,7 @@ Deposits and withdrawals trigger `balance_update` events:
 | `order` | `UPDATE` | Order status change (matching, filled, partial fill) |
 | `order` | `CANCELLATION` | Order cancelled by user |
 | `balance_update` | - | Balance change from deposit/withdrawal |
+| `nonce` | - | User nonce incremented on-chain (stale orders cancelled) |
 
 ## Order Status Summary
 
