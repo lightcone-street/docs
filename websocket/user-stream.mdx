@@ -250,7 +250,7 @@ Deposits and withdrawals trigger `balance_update` events:
 
 ## Nonce Updates
 
-When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This cancels **all open orders across all markets** that were placed with a nonce below the new value. No individual order cancellation events are sent — the client should treat this as a bulk cancel of all existing orders.
+When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This cancels **all open orders across all markets** that were placed with a nonce below the new value. The client should treat this message as a bulk cancel of all existing orders.
 
 ```json
 {
