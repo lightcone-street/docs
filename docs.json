@@ -30,7 +30,7 @@
 	  {
             "group": "More",
             "pages": [
-              "learn/more/terminology",
+              "learn/more/terminology.mdx",
               "learn/more/security",
               "learn/more/brand-assets"
             ]
