@@ -1,26 +1,22 @@
 ---
-title: Authentication (WIP)
+title: Authentication
 icon: key
 ---
 
-# ACTIVE WIP, DONT TOUCH THIS PAGE, THANKS -- ARAD
-
-<Tip>For most read-only methods, no authentication is required.</Tip>
-
----
+<Tip>Authentication is not required for most read-only methods.</Tip>
 
 ## Signature authentication
 
 Required for:
 
-- <Badge color="blue">Post</Badge> Submit Order
-- <Badge color="blue">Post</Badge> Cancel Order
-- <Badge color="blue">Post</Badge> Cancel All Orders
+- <Badge color="blue">Post</Badge> orders/submit
+- <Badge color="blue">Post</Badge> orders/cancel
+- <Badge color="blue">Post</Badge> orders/cancel-all
 
-To submit or cancel orders, you must include an Ed25519 signature signed by the relevant Solana account. It cryptographically binds the order to the wallet's ownership, ensuring orders cannot be manipulated.
+Orders are cryptographically bound to the ownership of a Solana wallet. To submit or cancel orders, therefore, you must include an Ed25519 signature signed by the relevant keypair.
 
-1. **Construct the payload** with all required fields
-2. **Sign the payload** using Ed25519 with your account's keypair
+1. **Create the payload** with all required fields
+2. **Sign the payload** using Ed25519 with your wallet's keypair
 3. **Include the signature** in the request as a hex-encoded string
 
 ### Using the SDK
@@ -57,6 +53,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         expiration: 0,
     });
 
+    // Sign order
     order.sign(&keypair);
 
     let response = client.submit_order(SubmitOrderRequest {
@@ -69,6 +66,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         maker_amount: order.maker_amount,
         taker_amount: order.taker_amount,
         expiration: order.expiration,
+        // Providing the hex-encoded signature of the order
         signature: hex::encode(order.signature),
         orderbook_id: "orderbook_id".to_string(),
     }).await?;
@@ -527,55 +525,16 @@ response = requests.post(
 
 Required for:
 
-- <Badge color="blue">Post</Badge> Get User Orders
+- <Badge color="blue">Post</Badge> users/orders
 
-<Accordion title="IGNORE">
-
-
-JWT authentication **(TO CHANGE:)** consists of the user’s API credentials (apiKey, secret, passphrase) generated from a wallet's signature. These are used for specific API methods, as well as websockets. Requests are signed using [cryptographic method].
-
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/auth/login_or_register_with_message` | POST | Sign an arbitrary message |
-| `/auth/login_or_register_with_transaction` | POST | Sign transaction bytes |
-| `/auth/logout` | POST | Clear the session cookie |
-
-Both login endpoints accept:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `pubkey_bytes` | `number[]` | Your wallet's public key as a byte array |
-| `signature` | `number[]` | ED25519 signature bytes |
-| `message` / `transaction` | `number[]` | The signed payload bytes |
-
-On success, the response sets an `auth_token` cookie (HttpOnly, Secure,
-SameSite=Lax) containing an RS256 JWT. If the wallet has not been seen
-before, an account is created automatically.
-
-</Accordion>
-
-<Note>
-**This endpoint requires JWT authentication:**
-
-1. Sign an authentication message using your Solana account
-2. Receive a JWT, returned as an `auth_token` HttpOnly cookie
-
-The JWT is valid for 14 days. Subsequent requests are authenticated via the cookie; an `Authorization` header is not required.
-
-The user is identified from the JWT - no request body is needed.
-</Note>
-
-### Obtaining a JWT
-
-You can authenticate with the API via a message-based signature verification. The `POST /auth/login_or_register_with_message` endpoint verifies a signed payload from a Solana wallet and return a JWT session cookie.
+`POST /auth/login_or_register_with_message` endpoint verifies a signed message from a Solana wallet and returns a JWT session cookie (valid for 14 days).
 
 The request body should include:
 1. `message` (the original arbitrary string that was signed)
 2. `signature_bs58` (the signature encoded in base58)
 3. `pubkey_bytes` (the 32-byte public key as an array).
 
-The client signs a message using their Solana wallet's private key, then submits both the original message and signature for server-side verification and receives the JWT on response header.
+The client signs a message with the user's Solana wallet's keypair, submits the original message and signature for server-side verification, and finally receives the JWT in the response header. 
 
 ### Using the SDK
 

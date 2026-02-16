@@ -21,14 +21,16 @@ https://tapi.lightcone.xyz/api
 
 ## Protocol
 
+**Brief walkthrough**
+
 Lightcone's CLOB is hybrid-decentralized orderbook; Operators match orders offchain, while asset issuance, settlement and signature verification are executed onchain, non-custodially and trustlessly. Orders are ED25519-signed payloads.
 
 The protocol specifies, for each market, the **_Deposit Tokens_** that're available for trading _(e.g. USDC, wBTC, wETH)._
 
-Deposit Tokens are held as collateral, against which a set of SPL **_Conditional Tokens_** are minted, one per possible outcome, _(e.g. USDC => [A-USDC, B-USDC])_, via what is called a **_split_**.
+Deposit Tokens are held as collateral, against which a set of SPL **_Outcome Tokens_** are minted, one per possible outcome, _(e.g. USDC => [<Badge size ="sm" className="badge-r">**A-USDC**</Badge>, <Badge size ="sm" className="badge-d">**B-USDC**</Badge>])_, via what is called a **_split_**.
 
-In the opposite direction - a full set of Conditional Tokens can **_merge_** to claim the underlying Deposit Tokens _(e.g. [A-USDC, B-USDC] => USDC)_
+In the opposite direction - a full set of Outcome Tokens can **_merge_** to claim the underlying Deposit Tokens _(e.g. [<Badge size ="sm" className="badge-r">**A-USDC**</Badge>, <Badge size ="sm" className="badge-d">**A-USDC**</Badge>] => USDC)_
 
-The protocol uses a custom Solana program facilitating swaps between _**Conditional Token pairs** (e.g. A-USDC/A-BTC)._ An _**Orderbook**_ always pairs Conditional Tokens of the **_same Universe/Condition_** against each other (_e.g. A against A, B against B)._
+The protocol uses a custom Solana _**Orderbook**_ program facilitating swaps between _**Outcome Token pairs** of the same outcome (e.g. <Badge size ="sm" className="badge-r">**A-USDC**</Badge>/<Badge size ="sm" className="badge-r">**A-BTC**</Badge>)._ Note that orderbooks always pairs two Conditional Tokens of the **_same outcome universe_** against each other (_e.g. <Badge size ="sm" className="badge-r">**A**</Badge> with <Badge size ="sm" className="badge-r">**A**</Badge>, <Badge size ="sm" className="badge-d">**B**</Badge> with <Badge size ="sm" className="badge-d">**B**</Badge>)._
 
-After a market **_settles_**, Conditional Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if A Universe won; A-USDC, A-BTC redeem for USDC, BTC respectively)_, while the Conditional Tokens of all other Universes become effectively worthless.
+After a market **_settles_**, Outcome Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if <Badge size ="sm" className="badge-d">**B**</Badge> outcome materialized, then <Badge size ="sm" className="badge-d">**B-USDC**</Badge> & <Badge size ="sm" className="badge-d">**B-BTC**</Badge> can redeem USDC, BTC respectively)_, while the Outcome Tokens in all other outcome universes become effectively worthless.

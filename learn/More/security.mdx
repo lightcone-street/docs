@@ -2,3 +2,550 @@
 title: "Security"
 description: "include a brief explanation on the self-custody thing, self wallets and privy if acc made via socials. and then list the audits with link to the pdf hosted on github. "
 ---
+
+
+# Christian Audit
+
+This is my own audit without looking at the AI reponses.
+
+### Nits
+
+- You don't need 8 byte discriminators if you don't want to, I doubt you need more than a byte - at most 2 bytes.
+- `math.rs` line 19
+  ```rust
+      let result = match rounding {
+          Rounding::Down => numerator / (c as u128),
+          Rounding::Up => {
+              let divisor = c as u128;
+              (numerator + divisor - 1) / divisor // NIT: divisor.checked_sub(1)
+          }
+      };
+  ```   
+- `state.rs` line 13
+  ```rust 
+  // Move this above #[inline] - imports before functions
+  pub use crate::constants::{
+      EXCHANGE_DISCRIMINATOR, MARKET_DISCRIMINATOR, ORDER_STATUS_DISCRIMINATOR,
+      USER_NONCE_DISCRIMINATOR, POSITION_DISCRIMINATOR, ORDERBOOK_DISCRIMINATOR,
+      GLOBAL_DEPOSIT_TOKEN_DISCRIMINATOR,
+      EXCHANGE_SEED, MARKET_SEED, VAULT_SEED, MINT_AUTHORITY_SEED,
+      CONDITIONAL_MINT_SEED, ORDER_STATUS_SEED, USER_NONCE_SEED, POSITION_SEED,
+      ORDERBOOK_SEED, GLOBAL_DEPOSIT_TOKEN_SEED, MAX_OUTCOMES,
+  };
+  ```
+- In on-chain state, don't use signed integers. Keep everything unsigned.
+- In on-chain state, use PODs ( see next section )
+- In `state.rs` make some in-file unit tests to assure the `LEN` matches the struct mem size. 
+- `validation.rs`
+  ```rust
+  // This is how you should be reading in accounts - however, you should really use POD ( See section below )
+  let data = unsafe { &*(market.borrow_data_unchecked().as_ptr() as *const Market) };
+  ```
+- In `validation.rs`, dont use `find_program_address`, use `create_program_address` and pass in the `bump` which you're storing anyways. It takes extra CU to find the correct curve. Off-chain, find address, on-chain create address.
+- `validation.rs`
+  ```rust
+      let clock = Clock::get()?;
+      // Nit - make these two seperate checks - seperation of concern + better readability 
+      if order.expiration != 0 && order.expiration <= clock.unix_timestamp {
+          return Err(ExchangeError::OrderExpired.into());
+      }
+  ```
+- Personally, I like to get my accounts from the array spread instead of indexing. [Example](https://github.com/coachchucksol/solcat/blob/master/program/src/instructions/empty_vault.rs)
+  ```rust
+  pub fn process_empty_vault(
+      program_id: &Pubkey,
+      accounts: &[AccountInfo],
+      data: &[u8],
+  ) -> ProgramResult {
+      let [vault, admin, mint, admin_token, vault_token, token_program, system_program] = accounts
+      else {
+          log!("Not enough keys, need 7, got {}", accounts.len());
+          return Err(ProgramError::NotEnoughAccountKeys);
+      };
+      let _ = unsafe { load_ix_data::<EmptyVaultIxData>(data)? };
+  ```
+- Generally, always use checked arithmatic unless you are dividing by a non-zero constant
+
+
+### Use POD
+
+For any on-chain struct, use PODs to align everything to 1 byte ( replace anything that is not a Pubkey or u8 with the Pod equivalent ). Feel free to yoink the no - POD implementation here: [pod.rs](https://github.com/coachchucksol/solcat/blob/master/program/src/pod.rs) - otherwise you can run into alignment issues. This will also allow you to remove all padding - although I do always recommend some amount of `for-future-use` bytes.
+
+This also allows you to deserialize the structs by just pointer dereferencing - you could replace your `read_bytes` and save some CU. Take a look at [utils.rs](https://github.com/coachchucksol/solcat/blob/master/program/src/utils.rs) on how to do this.
+
+### Post AI Audit ( And reccomendations )
+
+- Its probably fine to not check the token program ID - but good practice too anyways.
+- I did not personally go through and check the interactions of all IXs - make sure to write good tests
+- It's probably worth going through the AI audits and determine what is valid
+
+## Claude Audit
+
+Done using Claude Code (Claude Opus 4.6). Full source review of all 18 files (lib.rs, constants.rs, error.rs, state.rs, validation.rs, math.rs, token.rs, signature.rs, ed25519.rs, events.rs, and all 17 instruction files).
+
+### Architecture Overview
+
+Lightcone is a Solana prediction market exchange built on pinocchio (no_std). Key design:
+
+- **Exchange** singleton PDA holds authority, operator, market count, pause flag
+- **Markets** support 2-6 outcomes with per-market oracle for settlement
+- **Positions** are per-user-per-market PDAs that own conditional token ATAs
+- **Conditional tokens** are Token-2022 mints with metadata, created per outcome per deposit mint
+- **Order matching** is off-chain: users sign orders with Ed25519, the operator submits matches on-chain
+- **Collateral** is locked 1:1 in vaults when minting complete sets; winners redeem 1:1 after settlement
+- **Global deposits** allow pre-funding via whitelisted mints, enabling atomic deposit+swap
+
+21 instructions total. The operator (trusted role) controls order matching. The authority controls market creation, activation, pausing, and deposit token whitelisting.
+
+---
+
+### Findings
+
+#### HIGH Severity
+
+**H-1: Token program IDs not validated in `match_orders_multi.rs`, `deposit_and_swap.rs`, and `global_to_market_deposit.rs`**
+
+In `match_orders_multi.rs`, `token_2022_program` is taken from the accounts array (index 10 or 9 depending on bitmask) but is never validated against `TOKEN_2022_PROGRAM_ID`. All conditional token transfers are CPI'd to whatever program is at that position.
+
+```rust
+// match_orders_multi.rs - no validation on token_2022_program
+token_2022_program = &accounts[10]; // or &accounts[9]
+// ...
+transfer_checked(
+    maker_position_base_ata,
+    taker_position_base_ata,
+    maker_position,
+    base_mint,
+    maker_fill_amount,
+    base_decimals,
+    token_2022_program, // unvalidated!
+    &maker_pos_signer,
+)?;
+```
+
+Similarly in `deposit_and_swap.rs`, both `token_program` (index 7) and `token_2022_program` (variable index) are unvalidated.
+
+Additionally, `global_to_market_deposit.rs` validates `deposit_mint.owner() == TOKEN_PROGRAM_ID` (line 112) but does NOT validate the `token_program` (index 10) or `token_2022_program` (index 11) account keys themselves. Unlike the other two files, this instruction is **user-callable** (not operator-only), making it a higher risk surface - though the minting authority PDA constraint limits what a fake token_2022_program could accomplish.
+
+**Impact:** In the operator-only paths (`match_orders_multi`, `deposit_and_swap`), a compromised operator could pass a fake token program that returns `Ok(())` without moving tokens, stealing from one side of a trade. In `global_to_market_deposit`, a user controls the token program accounts.
+
+**Contrast with instructions that DO validate:**
+- `add_deposit_mint.rs:78-83` - validates both TOKEN_PROGRAM_ID and TOKEN_2022_PROGRAM_ID
+- `deposit_to_global.rs:56-58` - validates TOKEN_PROGRAM_ID
+- `init_position_tokens.rs:94-96` - validates TOKEN_2022_PROGRAM_ID
+
+**Recommendation:** Add explicit checks in all three files:
+```rust
+if *token_2022_program.key() != TOKEN_2022_PROGRAM_ID {
+    return Err(ProgramError::IncorrectProgramId);
+}
+```
+
+---
+
+#### MEDIUM Severity
+
+**M-0: `get_mint_decimals()` in `token.rs:134` reads mint data without owner validation**
+
+```rust
+// token.rs:133-140
+pub fn get_mint_decimals(mint: &AccountInfo) -> Result<u8, ProgramError> {
+    let data = unsafe { mint.borrow_data_unchecked() };
+    if data.len() < MINT_DECIMALS_OFFSET + 1 {
+        return Err(ProgramError::InvalidAccountData);
+    }
+    Ok(data[MINT_DECIMALS_OFFSET]) // No check that mint.owner() == TOKEN_PROGRAM_ID or TOKEN_2022_PROGRAM_ID
+}
+```
+
+Called in 9 locations across 8 files. A separate local copy in `add_deposit_mint.rs:383-388` has the same issue.
+
+**Mitigations present (downgraded from HIGH after verification):**
+- SPL Token's `transfer_checked` independently validates that the decimals match the mint's actual decimals and that from/to accounts reference the correct mint. Every callsite passes the result to `transfer_checked` or `initialize_token_account`, so a wrong decimals value causes the SPL Token CPI to fail.
+- Several callsites have explicit owner checks upstream: `deposit_to_global.rs:61`, `global_to_market_deposit.rs:112`, `deposit_and_swap.rs:151`.
+- Several callsites have PDA-pinned mint keys (vault PDA derivation uses `deposit_mint.key()` as a seed): `mint_complete_set.rs`, `merge_complete_set.rs`, `redeem_winnings.rs`.
+
+**Remaining risk:** This is only exploitable in combination with H-1 (fake token program). If the CPI target is also spoofed, the decimals backstop is gone. As a standalone issue, SPL Token's `transfer_checked` provides effective defense.
+
+The highest risk callsite is `withdraw_from_position.rs:94`, where the `mint` account has neither explicit owner check nor PDA derivation - it relies entirely on the `transfer_checked` CPI validation.
+
+**Recommendation:** Add `assert_owned_by(mint, &TOKEN_PROGRAM_ID)` or check against both TOKEN_PROGRAM_ID and TOKEN_2022_PROGRAM_ID before reading.
+
+**M-1: Missing discriminator check on existing OrderStatus accounts in `update_or_create_order_status`**
+
+```rust
+// match_orders_multi.rs:344-377
+if order_status.data_len() == 0 {
+    // Create account, set discriminator, remaining, is_cancelled
+    // ...
+}
+
+// Line 370: reads existing account without discriminator check
+let status = unsafe { &mut *(order_status.borrow_mut_data_unchecked().as_mut_ptr() as *mut OrderStatus) };
+if status.is_cancelled != 0 || status.remaining == 0 {
+    return Err(ExchangeError::OrderFilledOrCancelled.into());
+}
+```
+
+When the OrderStatus account already exists, the code at line 370 reads and mutates it without verifying the discriminator OR checking ownership via `assert_owned_by`. Compare with `cancel_order.rs:96-101` which correctly checks both ownership (line 96) and discriminator (line 98-100) on existing accounts.
+
+**Mitigating factor:** The PDA derivation at line 339 ensures the account key matches `[ORDER_STATUS_SEED, order_hash]`. Since only this program can sign for this PDA, only this program can create accounts at this address. So in practice the discriminator and ownership will always be correct.
+
+**Recommendation:** Add defensive ownership and discriminator checks for consistency:
+```rust
+assert_owned_by(order_status, program_id)?;
+if status.discriminator != ORDER_STATUS_DISCRIMINATOR {
+    return Err(ExchangeError::InvalidDiscriminator.into());
+}
+```
+
+---
+
+**M-2: `add_deposit_mint` has no access control - any signer can add deposit mints to any market**
+
+```rust
+// add_deposit_mint.rs:74-76
+if !payer.is_signer() {
+    return Err(ProgramError::MissingRequiredSignature);
+}
+// No authority check - any signer can call this
+```
+
+There is no check that the caller is the Exchange authority. Any user can add a new deposit mint to any market in any state (Pending, Active, Resolved, or Cancelled - `validate_market` at line 85 only checks ownership and discriminator, not status), creating new vaults and conditional token mints.
+
+**Impact:** While the new mints are PDAs (so no duplicate creation) and the mint_authority is program-controlled (so no unauthorized minting), this opens the surface for:
+- Griefing by creating unwanted deposit mints on markets
+- Markets intended for a single collateral type getting additional collateral types
+- Adding deposit mints to resolved/cancelled markets (wasted state)
+
+**Recommendation:** Add authority validation matching `create_market.rs`'s pattern, and consider restricting to Pending markets only.
+
+---
+
+**M-3: `create_orderbook` does not validate that mint_a and mint_b are conditional mints for the given market**
+
+```rust
+// create_orderbook.rs:107-111 (comment in the code itself acknowledges this)
+// Validate that mint_a is a conditional mint for this market
+// Seeds: [CONDITIONAL_MINT_SEED, market, deposit_mint, outcome_index]
+// Since we don't know the deposit_mint or outcome_index, we validate ownership
+// The mint should be owned by Token-2022 and have the right structure
+// For now, we rely on the fact that the mints are passed correctly
+```
+
+Any two Token-2022 mints (or even non-mint accounts) could be passed as mint_a/mint_b. The orderbook PDA is derived from `[ORDERBOOK_SEED, mint_a, mint_b]`, so creating an orderbook with wrong mints would create a PDA at a unique address. The orderbook itself is only informational (stores ALT), but incorrect orderbooks could confuse off-chain indexers.
+
+**Recommendation:** Either validate the mints are conditional mints for the given market (requires passing deposit_mint and outcome indices), or document this as a known limitation.
+
+---
+
+**M-4: Operator centralization - front-running and censorship risk**
+
+The operator has exclusive control over order matching (`match_orders_multi` and `deposit_and_swap`). The operator could:
+- Front-run user orders by inserting their own orders first
+- Selectively censor orders from specific users
+- Choose match ordering to extract MEV
+
+This is a fundamental design tradeoff of off-chain orderbook systems. The Ed25519 signature scheme prevents the operator from forging orders or modifying their terms, but matching priority is entirely operator-controlled.
+
+**Recommendation:** Document this trust assumption clearly. Consider a mechanism for users to force-execute their own orders on-chain as a fallback (e.g., a permissionless match instruction with a time-delay).
+
+---
+
+#### LOW Severity
+
+**L-1: `find_program_address` used on-chain instead of `create_program_address` with stored bumps**
+
+Throughout `validation.rs` and all instruction files, `find_program_address` is used to re-derive PDAs. This iterates through bump values until it finds a valid one, wasting CUs. Since bumps are stored in account state (`Exchange.bump`, `Market.bump`, `Position.bump`, etc.), `create_program_address` with the known bump should be used instead.
+
+Example in `validation.rs:54`:
+```rust
+let (expected, _) = find_program_address(&[EXCHANGE_SEED], program_id);
+// Exchange.bump is already stored - use create_program_address instead
+```
+
+This pattern appears in every instruction and validation function (~60+ callsites). `create_program_address` is never used anywhere in the codebase.
+
+---
+
+**L-2: `increment_nonce` uses unchecked addition**
+
+```rust
+// increment_nonce.rs:65
+nonce_data.nonce += 1;
+```
+
+This will panic on overflow at u64::MAX. While practically unreachable (would require 2^64 calls), it should use `checked_add` for consistency with the rest of the codebase.
+
+---
+
+**L-3: No account closure or rent reclamation mechanism**
+
+OrderStatus, UserNonce, Position, and Orderbook accounts are created but can never be closed. Over time this leads to on-chain data bloat and permanent rent lock-up.
+
+**Recommendation:** Add close instructions that validate the account is in a terminal state (e.g., OrderStatus is fully filled or cancelled, Position has zero token balances) and refund lamports to the original payer.
+
+---
+
+**L-4: Market PDA not validated in `match_orders_multi.rs`**
+
+`validate_active_market` checks ownership + discriminator + status but does NOT validate the PDA derivation (`find_program_address(&[MARKET_SEED, &market_id_bytes], program_id)`).
+
+```rust
+// validation.rs:97-112
+pub fn validate_active_market(...) -> Result<&Market, ProgramError> {
+    assert_owned_by(market, program_id)?;    // ownership check
+    let data = unsafe { ... };
+    if data.discriminator != MARKET_DISCRIMINATOR { ... }  // discriminator check
+    if data.status != MarketStatus::Active as u8 { ... }   // status check
+    Ok(data)
+    // No PDA derivation check!
+}
+```
+
+`match_orders_multi.rs` calls `validate_active_market` but performs no additional market PDA derivation check. Compare with `mint_complete_set.rs:83-86`, `merge_complete_set.rs:75-78`, and `deposit_and_swap.rs:136-139` which all DO validate the market PDA in addition to calling `validate_active_market`.
+
+**Mitigating factor:** The market key is part of the signed order message. If the wrong market account is passed, signature verification fails. But the missing PDA check is inconsistent with other instructions.
+
+---
+
+**L-5: `withdraw_from_position` does not validate the token program**
+
+```rust
+// withdraw_from_position.rs:52
+let token_program = &accounts[6]; // Not validated
+// ...
+transfer_checked(position_ata, user_ata, position, mint, amount, decimals, token_program, &position_signer)?;
+```
+
+The user controls which program is passed as `token_program`. However, since the position PDA signer can only authorize transfers from position-owned ATAs (where the position is the SPL Token account owner), and the user IS the position owner, passing a fake program would only affect the user's own funds. Not exploitable against other users.
+
+---
+
+### Instruction-by-Instruction Notes
+
+| Instruction | Signer Check | Ownership Check | PDA Check | Pause Check | Notes |
+|---|---|---|---|---|---|
+| Initialize | authority | N/A (creation) | Exchange PDA | N/A | Clean. No re-init possible (CreateAccount fails). |
+| CreateMarket | authority | Exchange | Exchange + Market PDA | No | Authority validated. market_count++ is atomic. |
+| AddDepositMint | payer (any) | Market | Market + Vault + MintAuth + CondMints | No | **No authority check (M-2).** |
+| MintCompleteSet | user | Exchange, Market, Position | All PDAs | Yes | Creates Position idempotently. Thorough. |
+| MergeCompleteSet | user | Exchange, Market, Position | All PDAs | Yes | Mirror of MintCompleteSet. Correct. |
+| MatchOrdersMulti | operator | Exchange, Market, Positions | Position PDAs, OrderStatus PDAs | Via Exchange | **Token program not validated (H-1).** Complex but well-structured. |
+| CancelOrder | maker | Market, OrderStatus | Market + OrderStatus PDA | No | Correctly checks discriminator on existing accounts. |
+| IncrementNonce | user | UserNonce | UserNonce PDA | No | **Unchecked nonce++ (L-2).** |
+| SettleMarket | oracle | Exchange, Market | Exchange + Market PDA | Yes | Oracle check solid. Winning outcome bounds-checked. |
+| RedeemWinnings | user | Market, Position | All PDAs | No (intentional) | Correct: redemptions allowed even when paused. |
+| SetPaused | authority | Exchange | Exchange PDA | No | Clean. |
+| SetOperator | authority | Exchange | Exchange PDA | No | Clean. |
+| SetAuthority | authority | Exchange | Exchange PDA | No | Clean. No two-step transfer. |
+| ActivateMarket | authority | Exchange, Market | Exchange + Market PDA | No | Only Pending -> Active. |
+| WithdrawFromPosition | user | Position | Position PDA | No | **Token program not validated (L-5).** Safe due to self-only. |
+| CreateOrderbook | payer (any) | Market | Exchange + Orderbook + ALT PDAs | No | **Mints not validated (M-3).** Program IDs checked. |
+| WhitelistDepositToken | authority | Exchange, GDT | Exchange + GDT PDA | No | Validates mint owner = TOKEN_PROGRAM_ID. No re-init. |
+| DepositToGlobal | user | GDT | GDT + Deposit PDA | No | Token program validated. Mint owner checked. No pause check. |
+| GlobalToMarketDeposit | user | Exchange, Market, GDT, Position | All PDAs | Yes | Deposit mint owner checked. **Token programs not validated (H-1).** |
+| InitPositionTokens | user | Exchange, Market, Position | All PDAs + ALT | Yes | Program IDs validated. Thorough. |
+| DepositAndSwap | operator | Exchange, Market, GDT, Positions | All PDAs | Via Exchange | **Token programs not validated (H-1).** Most complex instruction. |
+
+---
+
+### Cryptography Review
+
+**Ed25519 verification (`ed25519.rs`):** Based on brine-ed25519 (OtterSec audited). Uses solana-curve25519 syscalls. Performs all required checks:
+- Public key on curve validation (line 49-53)
+- Signature `s` canonicality via `Scalar::from_canonical_bytes` (line 42-43)
+- Small-order point rejection for both R and public key (line 45-47)
+- Standard RFC 8032 verification equation: `[s]B == R + [k]A`
+
+**Order signing (`signature.rs`):** Orders are serialized to a 161-byte message, keccak256-hashed, hex-encoded to 64 ASCII bytes, then signed with Ed25519. The hex-encoding step is unconventional but not a security issue - it produces a fixed-length signing payload.
+
+**Condition ID derivation:** `keccak256(oracle || question_id || num_outcomes)` - deterministic and collision-resistant.
+
+No issues found in the cryptography layer.
+
+---
+
+### Math Review
+
+`mul_div` in `math.rs` is correctly implemented:
+- Division by zero check (line 12-14)
+- u128 intermediate to prevent overflow (line 16-17)
+- Checked multiplication (line 16-17)
+- Rounding up uses `(numerator + divisor - 1) / divisor` (line 22-23)
+- Result bounds-checked against u64::MAX before downcast (line 27-29)
+- Unit tests cover basic ops, rounding, large values, zero divisor, and overflow (lines 44-83)
+
+`validate_fill_amounts` correctly enforces that both sides' price limits are respected using floor-division (both sides get at least what they asked for).
+
+`orders_cross` uses u128 cross-multiplication to compare prices without division, preventing precision loss. Mathematically: `buyer_price >= seller_price` iff `buyer.maker * seller.maker >= buyer.taker * seller.taker`. Correct.
+
+---
+
+### Collateral Invariant Analysis
+
+The core invariant is: **vault balance == total supply of any single outcome mint** (all outcome mints for a given deposit_mint have the same supply).
+
+- `mint_complete_set`: deposits `amount` to vault, mints `amount` of each outcome. Invariant preserved.
+- `merge_complete_set`: burns `amount` of each outcome, withdraws `amount` from vault. Invariant preserved.
+- `match_orders_multi`: transfers conditional tokens between positions. No vault interaction. Invariant preserved.
+- `deposit_and_swap`: deposits `maker_fill_amount` to vault, mints `maker_fill_amount` of each outcome (distributed to maker/taker). Invariant preserved.
+- `redeem_winnings`: burns `amount` of winning outcome, withdraws `amount` from vault. Supply decreases equally with vault balance. Invariant preserved.
+
+The invariant ensures the vault always has sufficient collateral to cover all redemptions after settlement.
+
+---
+
+### Pause Mechanism Review
+
+**Paused instructions (via `validate_exchange_not_paused` or `validate_exchange`):** MintCompleteSet, MergeCompleteSet, SettleMarket, GlobalToMarketDeposit, InitPositionTokens, MatchOrdersMulti (via validate_exchange), DepositAndSwap (via validate_exchange).
+
+**Not paused:** RedeemWinnings, CancelOrder, IncrementNonce, WithdrawFromPosition, DepositToGlobal, all admin operations.
+
+**Note:** DepositToGlobal does NOT check the pause state - it has no exchange validation at all. This may be intentional (global deposits are pre-funding, not market-specific), but should be documented. If the exchange is paused due to an emergency, users can still deposit to global accounts (though they cannot then move those funds into markets, since GlobalToMarketDeposit IS paused).
+
+Allowing RedeemWinnings, CancelOrder, and WithdrawFromPosition when paused is correct - users should always be able to exit positions.
+
+---
+
+### Overall Assessment
+
+**Rating: 7.5/10 - Solid with actionable findings**
+
+The program is well-architected with consistent patterns, strong cryptographic foundations, and correct mathematical invariants. The main concerns are:
+
+1. **Token program validation gaps** (H-1): Three instructions (`match_orders_multi`, `deposit_and_swap`, `global_to_market_deposit`) don't validate token program IDs before CPI. This is the most important finding. A compromised operator key combined with this gap enables fund theft.
+2. **Missing access control** (M-2): `add_deposit_mint` should require authority.
+3. **Defense-in-depth** (M-0): `get_mint_decimals()` lacks owner checks - mitigated by SPL Token's `transfer_checked` independently, but compounds with H-1.
+4. **CU waste** (L-1): `find_program_address` used ~60+ times on-chain where `create_program_address` with stored bumps would suffice.
+5. **No account cleanup** (L-3): All created accounts are permanent.
+
+Strengths:
+- Native Ed25519 verification is excellent (avoids Ed25519 precompile overhead)
+- Collateral invariant is mathematically sound
+- PDA derivation is thorough and consistent
+- Event logging is comprehensive (22 event types)
+- Pause mechanism correctly preserves exit paths (with the note that DepositToGlobal is not paused)
+
+## ChatGPT Audit
+
+Double-check pass completed on all on-chain instructions in `src/`.
+
+### Findings (Most Severe to Least Severe)
+
+1. **CRITICAL: Token CPI program IDs are not validated in value-moving paths (direct theft / unbacked minting)**
+Several instructions accept `token_program` / `token_2022_program` from accounts and then CPI without enforcing canonical IDs.
+`src/instructions/merge_complete_set.rs:53`  
+`src/instructions/merge_complete_set.rs:54`  
+`src/instructions/redeem_winnings.rs:51`  
+`src/instructions/redeem_winnings.rs:52`  
+`src/instructions/mint_complete_set.rs:59`  
+`src/instructions/mint_complete_set.rs:60`  
+`src/instructions/global_to_market_deposit.rs:73`  
+`src/instructions/global_to_market_deposit.rs:74`  
+`src/instructions/match_orders_multi.rs:69`  
+`src/instructions/deposit_and_swap.rs:80`  
+`src/instructions/deposit_and_swap.rs:101`
+
+Exploit examples:
+- In `merge_complete_set`, pass fake `token_2022_program` (burn no-op) + real SPL token program (vault transfer succeeds) to withdraw collateral without burning outcome tokens.
+- In `mint_complete_set` / `global_to_market_deposit`, pass fake SPL token program for collateral transfer (no-op) + real Token-2022 for minting to mint uncollateralized outcome tokens.
+
+Recommendation:
+Require strict equality checks for every CPI target (`TOKEN_PROGRAM_ID`, `TOKEN_2022_PROGRAM_ID`, and where used `ATA_PROGRAM_ID` / `SYSTEM_PROGRAM_ID`) before invoking.
+
+2. **HIGH: Matching settlement accounts are not bound to expected custody ATAs**
+`match_orders_multi` and `deposit_and_swap` do not enforce that maker/taker token accounts are canonical ATAs for the expected `Position` + mint.
+`src/instructions/match_orders_multi.rs:64`  
+`src/instructions/match_orders_multi.rs:67`  
+`src/instructions/match_orders_multi.rs:168`  
+`src/instructions/match_orders_multi.rs:253`  
+`src/instructions/deposit_and_swap.rs:249`  
+`src/instructions/deposit_and_swap.rs:317`  
+`src/instructions/deposit_and_swap.rs:409`  
+`src/instructions/deposit_and_swap.rs:429`
+
+Impact:
+A malicious/compromised operator can route settlement outputs to arbitrary token accounts while still using valid signed orders.
+
+Recommendation:
+Derive expected ATA addresses on-chain and reject mismatches for all source/destination settlement accounts.
+
+3. **MEDIUM: `add_deposit_mint` is permissionless (market collateral listing not authority-gated)**
+`add_deposit_mint` only requires any signer payer and market validity; it does not require exchange authority/operator.
+`src/instructions/add_deposit_mint.rs:64`  
+`src/instructions/add_deposit_mint.rs:74`  
+`src/instructions/add_deposit_mint.rs:85`
+
+Impact:
+Any signer can create collateral routes for any market (state pollution / governance bypass).  
+Note: if permissionless listing is intentional, this is a design-risk, not a bug.
+
+Recommendation:
+Gate by exchange authority (or explicitly document and accept permissionless listing semantics).
+
+4. **MEDIUM: `create_orderbook` does not validate that `mint_a`/`mint_b` are market conditional mints**
+The instruction explicitly skips robust mint provenance validation.
+`src/instructions/create_orderbook.rs:107`  
+`src/instructions/create_orderbook.rs:111`  
+`src/instructions/create_orderbook.rs:112`
+
+Impact:
+Orderbooks can be created for arbitrary mint pairs unrelated to the market, risking indexer/UI confusion.
+
+Recommendation:
+Bind orderbook creation to validated conditional mints for the target market.
+
+5. **MEDIUM: Variable-length order parsing can panic from insufficient instruction data**
+Matching instructions validate only a minimal prefix, then use unchecked slicing/`unwrap` for per-maker fields.
+`src/instructions/match_orders_multi.rs:27`  
+`src/instructions/match_orders_multi.rs:149`  
+`src/instructions/match_orders_multi.rs:153`  
+`src/instructions/match_orders_multi.rs:157`  
+`src/instructions/deposit_and_swap.rs:48`  
+`src/instructions/deposit_and_swap.rs:286`  
+`src/instructions/deposit_and_swap.rs:290`  
+`src/instructions/deposit_and_swap.rs:294`
+
+Impact:
+Malformed data can trigger panic-style aborts instead of clean program errors.
+
+Recommendation:
+Compute and validate full expected byte length up front; replace `unwrap` with checked decoding.
+
+6. **LOW: Existing `OrderStatus` path lacks explicit owner/discriminator validation**
+`update_or_create_order_status` mutates existing account data without explicit `assert_owned_by` / discriminator checks.
+`src/instructions/match_orders_multi.rs:370`
+
+Impact:
+Low practical exploitability due PDA constraints, but weakens defensive invariants.
+
+Recommendation:
+Add owner + discriminator validation on existing-account path.
+
+7. **LOW: Nonce increment can wrap at `u64::MAX`**
+`nonce_data.nonce += 1` is unchecked.
+`src/instructions/increment_nonce.rs:65`
+
+Impact:
+In extreme edge case, nonce wrap could re-enable old nonce values.
+
+Recommendation:
+Use `checked_add` and return overflow error.
+
+8. **LOW: Unsafe account deserialization helpers do not enforce minimum data lengths**
+Multiple validation helpers cast raw bytes to structs without prior `LEN` checks.
+`src/validation.rs:61`  
+`src/validation.rs:86`  
+`src/validation.rs:103`  
+`src/validation.rs:120`  
+`src/validation.rs:134`  
+`src/validation.rs:168`  
+`src/validation.rs:190`  
+`src/validation.rs:226`
+
+Impact:
+If account-shape assumptions are violated, this increases UB/panic risk.
+
+Recommendation:
+Enforce `data_len >= Struct::LEN` before unsafe casts or switch to safe POD loaders.
