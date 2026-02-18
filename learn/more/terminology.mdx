@@ -4,31 +4,34 @@ title: 'Terminology'
 
 ## Core Concepts
 
-### Markets
+### ❬ Markets ❭
 
 A market is a distinct world event with multiple possible outcomes.
 
 e.g.
 _"US 2028 Presidential Elections"_ market, with the outcomes _"Republican Win"_, _"Democrat Win"_.
 
-### Universe Tokens
+### ❬ Outcome Tokens ❭
 
-Universe tokens (sometimes referred to as _conditional tokens_), are unique SPL tokens on Solana issued by the lightcone protocol for trading in each specific market.
+Outcome tokens (sometimes referred to as _universe tokens or conditional tokens_), are unique SPL tokens on Solana issued by the lightcone protocol for trading in each specific market.
 
-Universe tokens are essentially promissory notes to the underlying spot assets, which only materialize _if_ their corresponding universe materializes.
+Outcome tokens are essentially promissory notes to the underlying spot assets, which only materialize _if_ their corresponding outcome materializes.
 
-e.g. a _"March Fed Meeting Rate Change"_ market might have 3 different universes; <Badge size ="sm" className="badge-r">**0cut**</Badge>  <Badge size ="sm" className="badge-d">**25cut**</Badge> <Badge size ="sm" className="badge-i">**>50cut**</Badge>
- and the following Universe Tokens; <Badge size ="sm" className="badge-r">**0cut-USDC**</Badge> <Badge size ="sm" className="badge-r">**0cut-BTC**</Badge> <Badge size ="sm" className="badge-d">**25cut-USDC**</Badge> <Badge size ="sm" className="badge-d">**25cut-BTC**</Badge> <Badge size ="sm" className="badge-i">**>50cut-USDC**</Badge> <Badge size ="sm" className="badge-i">**>50cut-BTC**</Badge>
+e.g., a _"March Fed Meeting Rate Change"_ may have 3 different outcomes: <br />
+<Badge size ="sm" className="badge-r">**0cut**</Badge>  <Badge size ="sm" className="badge-d">**25cut**</Badge>   <Badge size ="sm" className="badge-i">**>50cut**</Badge>
+
+And the following Outcome Tokens: <br />
+<Badge size ="sm" className="badge-r">**0cut-USDC**</Badge> <Badge size ="sm" className="badge-r">**0cut-BTC**</Badge> <Badge size ="sm" className="badge-d">**25cut-USDC**</Badge> <Badge size ="sm" className="badge-d">**25cut-BTC**</Badge> <Badge size ="sm" className="badge-i">**>50cut-USDC**</Badge> <Badge size ="sm" className="badge-i">**>50cut-BTC**</Badge>
 
 In this example only BTC is available for trading - but any number of arbitrary tokens can made available for trading - added anytime while the market is active.
 
-### Split
+### ❬ Split ❭
 
 Split is a protocol function that mints a full set of universe tokens for a deposit asset. Split function must be called whenever any asset is deposited into a market, whether it's a simple deposit or an atomic deposit + swap action, as is often the case for users.
 
 e.g. depositing 10,000 USDC into the "US 2028 Presidential Elections" market would split it into <Badge size ="sm" className="badge-r">**10,000 RWin-USDC**</Badge> and <Badge size ="sm" className="badge-d">**10,000 DWin-USDC**</Badge>
 
-### Merge
+### ❬ Merge ❭
 
 Merge is a protocol function that burns a full set of universe tokens to withdraw the underlying spot deposit asset. This function is optional for early withdrawal, and must be called explicitly.
 
@@ -36,7 +39,7 @@ e.g. in the _"US 2028 Presidential Elections"_ market, a user merges <Badge size
 
 
 
-### Settlement
+### ❬ Settlement ❭
 
 Settlement refers to the point in time after a specific market's outcome becomes known, when lightcone pushes an onchain oracle update about it to the protocol.
 
