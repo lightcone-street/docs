@@ -218,8 +218,8 @@ await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
     base_token: baseToken,
     quote_token: quoteToken,
     side: 0,
-    maker_amount: Number(makerAmount),
-    taker_amount: Number(takerAmount),
+    amount_in: Number(makerAmount),
+    amount_out: Number(takerAmount),
     expiration: 0,
     signature: Buffer.from(signature).toString('hex'),
     orderbook_id: orderbookId,
@@ -290,8 +290,8 @@ response = requests.post(
         "base_token": str(base_token),
         "quote_token": str(quote_token),
         "side": 0,
-        "maker_amount": 650000,
-        "taker_amount": 1000000,
+        "amount_in": 650000,
+        "amount_out": 1000000,
         "expiration": 0,
         "signature": signature.hex(),
         "orderbook_id": orderbook_id
@@ -310,8 +310,8 @@ response = requests.post(
 | `base_token` | string | Base token mint address |
 | `quote_token` | string | Quote token mint address |
 | `side` | integer | 0 = BID (buy), 1 = ASK (sell) |
-| `maker_amount` | integer | Amount in lamports you give |
-| `taker_amount` | integer | Amount in lamports you receive |
+| `amount_in` | integer | Tokens you give (in lamports) |
+| `amount_out` | integer | Tokens you receive (in lamports) |
 | `expiration` | integer | Unix timestamp (0 = no expiration) |
 | `signature` | string | Hex-encoded Ed25519 signature |
 | `orderbook_id` | string | Orderbook identifier |

@@ -855,7 +855,7 @@
       },
       "SubmitOrderRequest": {
         "type": "object",
-        "required": ["maker", "nonce", "market_pubkey", "base_token", "quote_token", "side", "maker_amount", "taker_amount", "signature", "orderbook_id"],
+        "required": ["maker", "nonce", "market_pubkey", "base_token", "quote_token", "side", "amount_in", "amount_out", "signature", "orderbook_id"],
         "properties": {
           "maker": { "type": "string", "description": "Solana wallet pubkey", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "nonce": { "type": "integer", "format": "int64", "example": 1736456789000 },
@@ -863,8 +863,8 @@
           "base_token": { "type": "string", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
           "quote_token": { "type": "string", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
           "side": { "type": "integer", "description": "0 = BID (buy base), 1 = ASK (sell base)", "example": 0 },
-          "maker_amount": { "type": "integer", "format": "int64", "description": "Amount maker gives (in base units)", "example": 350000 },
-          "taker_amount": { "type": "integer", "format": "int64", "description": "Amount maker wants (in base units)", "example": 650000 },
+          "amount_in": { "type": "integer", "format": "int64", "description": "Tokens you give (in lamports)", "example": 350000 },
+          "amount_out": { "type": "integer", "format": "int64", "description": "Tokens you receive (in lamports)", "example": 650000 },
           "expiration": { "type": "integer", "format": "int64", "default": 0, "description": "Unix timestamp, 0 = no expiration", "example": 0 },
           "signature": { "type": "string", "description": "Hex-encoded Ed25519 signature", "example": "01020304..." },
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" }
@@ -906,8 +906,8 @@
           "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "side": { "type": "string", "description": "Order side", "example": "bid", "enum": ["bid", "ask"] },
-          "maker_amount": { "type": "string", "description": "Maker amount as decimal string", "example": "1.000000" },
-          "taker_amount": { "type": "string", "description": "Taker amount as decimal string", "example": "0.600000" },
+          "amount_in": { "type": "string", "description": "Input amount as decimal string", "example": "1.000000" },
+          "amount_out": { "type": "string", "description": "Output amount as decimal string", "example": "0.600000" },
           "remaining": { "type": "string", "description": "Remaining amount as decimal string", "example": "1.000000" },
           "filled": { "type": "string", "description": "Filled amount as decimal string", "example": "0.000000" },
           "price": { "type": "string", "description": "Order price as decimal string", "example": "0.600000" },

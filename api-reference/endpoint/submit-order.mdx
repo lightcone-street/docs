@@ -7,7 +7,7 @@ openapi: 'POST /orders/submit'
 
 #### Amount scaling _(lamports only)_
 
-Order amounts specified in `maker_amount`, `taker_amount` must be denominated in lamports, the smallest unit of the token.
+Order amounts specified in `amount_in`, `amount_out` must be denominated in lamports, the smallest unit of the token.
 
 Every `conditional_tokens` object includes a `decimals` field, which informs about the correct scaling to use for this specific conditional token.
 
