@@ -19,6 +19,10 @@ description: "Documentation for the Lightcone public API"
 
 https://tapi.lightcone.xyz/api
 
+## Rate Limits
+
+The API enforces per-IP rate limiting. Each IP address is allowed a burst of up to **60 requests**, after which requests are refilled at **10 per second**. Exceeding the limit returns HTTP `429 Too Many Requests`.
+
 ## Protocol
 
 **Brief walkthrough**

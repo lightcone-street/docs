@@ -11,6 +11,10 @@ Connect to the WebSocket server at:
 wss://tws.lightcone.xyz/ws
 ```
 
+## Rate Limits
+
+WebSocket connections are limited to **50 concurrent connections per IP address**. Exceeding this limit will return an error on connection attempt.
+
 ## Available Channels
 
 <CardGroup cols={2}>
