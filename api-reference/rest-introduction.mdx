@@ -19,10 +19,6 @@ description: "Documentation for the Lightcone public API"
 
 https://tapi.lightcone.xyz/api
 
-## Rate Limits
-
-The API enforces per-IP rate limiting. Each IP address is allowed a burst of up to **60 requests**, after which requests are refilled at **10 per second**. Exceeding the limit returns HTTP `429 Too Many Requests`.
-
 ## Protocol
 
 **Brief walkthrough**
@@ -38,3 +34,7 @@ In the opposite direction - a full set of Outcome Tokens can **_merge_** to clai
 The protocol uses a custom Solana _**Orderbook**_ program facilitating swaps between _**Outcome Token pairs** of the same outcome (e.g. <Badge size ="sm" className="badge-r">**A-USDC**</Badge>/<Badge size ="sm" className="badge-r">**A-BTC**</Badge>)._ Note that orderbooks always pairs two Conditional Tokens of the **_same outcome universe_** against each other (_e.g. <Badge size ="sm" className="badge-r">**A**</Badge> with <Badge size ="sm" className="badge-r">**A**</Badge>, <Badge size ="sm" className="badge-d">**B**</Badge> with <Badge size ="sm" className="badge-d">**B**</Badge>)._
 
 After a market **_settles_**, Outcome Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if <Badge size ="sm" className="badge-d">**B**</Badge> outcome materialized, then <Badge size ="sm" className="badge-d">**B-USDC**</Badge> & <Badge size ="sm" className="badge-d">**B-BTC**</Badge> can redeem USDC, BTC respectively)_, while the Outcome Tokens in all other outcome universes become effectively worthless.
+
+## Rate Limits
+
+The API enforces per-IP rate limiting. Each IP address is allowed a burst of up to 60 requests, after which requests are refilled at 10 per second. These rates will be changed at production
