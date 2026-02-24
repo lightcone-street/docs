@@ -230,10 +230,10 @@
       }
     },
     "/users/orders": {
-      "post": {
+      "get": {
         "tags": ["Orders"],
-        "summary": "Get user orders and balances",
-        "description": "Returns all open orders for the authenticated user across all markets",
+        "summary": "Get user orders, trigger orders, and balances",
+        "description": "Returns all open orders, pending trigger orders, and balances for the authenticated user across all markets.",
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           {
@@ -272,11 +272,15 @@
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/Order" }
                     },
+                    "trigger_orders": {
+                      "type": "array",
+                      "description": "Pending trigger orders (stop-loss, take-profit)",
+                      "items": { "$ref": "#/components/schemas/TriggerOrderInfo" }
+                    },
                     "balances": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/UserMarketBalance" }
                     },
-                    "nonce": { "type": "integer", "description": "User's current nonce for bulk order invalidation", "example": 0 },
                     "next_cursor": { "type": "string", "nullable": true, "description": "Cursor for next page (order_hash), null if no more results", "example": "0xdef456..." },
                     "has_more": { "type": "boolean", "description": "Whether more results are available", "example": true }
                   }
@@ -867,7 +871,10 @@
           "amount_out": { "type": "integer", "format": "int64", "description": "Tokens you receive (in lamports)", "example": 650000 },
           "expiration": { "type": "integer", "format": "int64", "default": 0, "description": "Unix timestamp, 0 = no expiration", "example": 0 },
           "signature": { "type": "string", "description": "Hex-encoded Ed25519 signature", "example": "01020304..." },
-          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" }
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "tif": { "type": "string", "enum": ["GTC", "IOC", "FOK", "ALO"], "default": "GTC", "description": "Time-in-force: GTC (Good Till Cancel, default), IOC (Immediate or Cancel), FOK (Fill or Kill), ALO (Post-Only / Add Liquidity Only)", "example": "GTC" },
+          "trigger_type": { "type": "string", "nullable": true, "enum": ["SL", "TP"], "description": "SL for stop-loss, TP for take-profit", "example": "TP" },
+          "trigger_price": { "type": "number", "nullable": true, "description": "Trigger price as a decimal. The order stays dormant until last trade price crosses this level.", "example": 0.65 }
         }
       },
       "SubmitOrderResponse": {
@@ -875,18 +882,21 @@
         "properties": {
           "order_hash": { "type": "string", "example": "0xabc123def456..." },
           "status": { "type": "string", "example": "accepted" },
-          "remaining": { "type": "string", "description": "Remaining amount as decimal string", "example": "0.350000" },
-          "filled": { "type": "string", "description": "Filled amount as decimal string", "example": "0.000000" },
-          "fills": { "type": "array", "items": { "type": "object" } }
+          "remaining": { "type": "string", "description": "Remaining amount as decimal string (regular orders only)", "example": "0.350000" },
+          "filled": { "type": "string", "description": "Filled amount as decimal string (regular orders only)", "example": "0.000000" },
+          "fills": { "type": "array", "items": { "type": "object" } },
+          "trigger_order_id": { "type": "string", "nullable": true, "description": "Trigger order ID (only returned for trigger orders)", "example": "stop_abc123def456..." }
         }
       },
       "CancelOrderRequest": {
         "type": "object",
-        "required": ["order_hash", "maker", "signature"],
+        "description": "Cancel a regular order (provide order_hash) or a trigger order (provide trigger_order_id). Exactly one of order_hash or trigger_order_id must be provided.",
+        "required": ["maker", "signature"],
         "properties": {
-          "order_hash": { "type": "string", "description": "Order hash as returned by the submit order endpoint", "example": "abc123def456..." },
+          "order_hash": { "type": "string", "nullable": true, "description": "Order hash to cancel (for regular orders). Signature must be over this hash.", "example": "abc123def456..." },
+          "trigger_order_id": { "type": "string", "nullable": true, "description": "Trigger order ID to cancel (for trigger orders). Signature must be over this ID string.", "example": "stop_abc123def456..." },
           "maker": { "type": "string", "description": "Order maker's public key", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
-          "signature": { "type": "string", "description": "Ed25519 signature of the order_hash string. Check the authentication page for more details.", "example": "01020304..." }
+          "signature": { "type": "string", "description": "Ed25519 signature over order_hash (for regular orders) or trigger_order_id (for trigger orders).", "example": "01020304..." }
         }
       },
       "CancelAllOrdersRequest": {
@@ -913,6 +923,9 @@
           "price": { "type": "string", "description": "Order price as decimal string", "example": "0.600000" },
           "created_at": { "type": "integer", "format": "int64", "example": 1736456789000 },
           "expiration": { "type": "integer", "format": "int64", "example": 0 },
+          "base_mint": { "type": "string", "description": "Base token mint address", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
+          "quote_mint": { "type": "string", "description": "Quote token mint address", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
+          "outcome_index": { "type": "integer", "description": "Outcome index (0=YES, 1=NO)", "example": 0 },
           "status": { "type": "string", "description": "Order status: OPEN (resting on book), MATCHING (in-flight tx), FILLED, CANCELLED", "example": "OPEN", "enum": ["OPEN", "MATCHING", "FILLED", "CANCELLED"] }
         }
       },
@@ -1021,6 +1034,23 @@
           "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
           "has_more": { "type": "boolean", "example": true },
           "next_cursor": { "type": "integer", "example": 1233 }
+        }
+      },
+      "TriggerOrderInfo": {
+        "type": "object",
+        "description": "A pending trigger order (stop-loss or take-profit) that has not yet been triggered.",
+        "properties": {
+          "trigger_order_id": { "type": "string", "example": "stop_abc123def456..." },
+          "order_hash": { "type": "string", "example": "abc123def456..." },
+          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
+          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
+          "trigger_price": { "type": "string", "description": "Trigger price as decimal string", "example": "0.650000" },
+          "trigger_type": { "type": "string", "enum": ["SL", "TP"], "description": "SL = stop-loss, TP = take-profit", "example": "TP" },
+          "side": { "type": "integer", "example": 0 },
+          "maker_amount": { "type": "integer", "example": 350000 },
+          "taker_amount": { "type": "integer", "example": 650000 },
+          "tif": { "type": "integer", "example": 0 },
+          "created_at": { "type": "integer", "format": "int64", "example": 1736456789 }
         }
       },
       "CreateOrderbookRequest": {

@@ -11,6 +11,7 @@ The `user` channel provides a unified stream of all user-specific events:
 - Order cancellations
 - Balance updates after deposits/withdrawals
 - Nonce updates (when `incrementNonce` is called on-chain)
+- Trigger order events (stop-loss, take-profit, triggered/failed/expired)
 
 Upon subscription, you receive an **initial snapshot** of all open orders and balances, followed by real-time updates.
 
@@ -266,6 +267,59 @@ When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This ca
 }
 ```
 
+## Trigger Order Events
+
+When a trigger order (stop-loss, take-profit, conditional) is triggered by a price movement, a `trigger_order` event is emitted. This tells the client what happened when the trigger condition was met.
+
+### Event Structure
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "event_type": "trigger_order",
+    "trigger_order_id": "stop_abc123def456...",
+    "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
+    "orderbook_id": "5BNoPgYe_CrhujZLf",
+    "trigger_price": "0.6500",
+    "trigger_above": true,
+    "status": "triggered",
+    "order_hash": "0xabc123...",
+    "side": "bid",
+    "result_status": "filled",
+    "result_filled": "10.000000",
+    "result_remaining": "0.000000",
+    "timestamp": "2026-01-09T20:43:24.123Z"
+  }
+}
+```
+
+### Trigger Order Status Values
+
+| status | Description |
+|--------|-------------|
+| `triggered` | Trigger order was triggered and the pre-signed order was submitted successfully |
+| `failed` | Trigger order was triggered but submission failed (e.g., insufficient balance). The trigger order is re-inserted and will retry on the next price movement |
+| `expired` | Trigger order was triggered but the pre-signed order had expired. The trigger order is removed |
+
+### Fields
+
+| Field | Description |
+|-------|-------------|
+| `trigger_order_id` | ID of the trigger order |
+| `trigger_price` | The price threshold that was crossed (decimal string) |
+| `trigger_above` | `true` = triggered when price is at or above trigger_price, `false` = triggered when price is at or below trigger_price |
+| `order_hash` | Keccak256 hash of the pre-signed order |
+| `side` | `"bid"` or `"ask"` |
+| `result_status` | Result from order submission: `"filled"`, `"accepted"`, `"rejected"`, or empty on failure |
+| `result_filled` | Amount filled from the triggered order (decimal string) |
+| `result_remaining` | Remaining amount after trigger execution (decimal string) |
+
+<Note>
+When a trigger order triggers successfully, you will also receive the normal **order events** (PLACEMENT, UPDATE, etc.) for the resulting order. The `trigger_order` event provides the additional context that this order originated from a stop/TP/SL trigger.
+</Note>
+
 ## Event Types Summary
 
 | Event | Type | Description |
@@ -276,6 +330,7 @@ When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This ca
 | `order` | `CANCELLATION` | Order cancelled by user |
 | `balance_update` | - | Balance change from deposit/withdrawal |
 | `nonce` | - | User nonce incremented on-chain (stale orders cancelled) |
+| `trigger_order` | - | Trigger order (stop-loss, take-profit, conditional) triggered, failed, or expired |
 
 ## Order Status Summary
 

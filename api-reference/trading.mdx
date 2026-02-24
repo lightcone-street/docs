@@ -315,6 +315,31 @@ response = requests.post(
 | `expiration` | integer | Unix timestamp (0 = no expiration) |
 | `signature` | string | Hex-encoded Ed25519 signature |
 | `orderbook_id` | string | Orderbook identifier |
+| `tif` | integer | Time-in-force (optional, default 0). 0 = GTC, 1 = IOC, 2 = FOK, 3 = ALO |
+
+## Time-in-Force (TIF)
+
+| Value | Name | Behavior |
+|-------|------|----------|
+| 0 | GTC (Good Till Cancel) | Default. Order rests on book until filled or cancelled |
+| 1 | IOC (Immediate or Cancel) | Fills as much as possible immediately, cancels remainder |
+| 2 | FOK (Fill or Kill) | Must fill entirely or is rejected completely |
+| 3 | ALO (Add Liquidity Only) | Post-only. Rejected if it would cross the spread |
+
+## Stop Orders
+
+Stop orders are pre-signed dormant orders triggered by a price condition. When the last trade price crosses the trigger, the order is automatically submitted to the book.
+
+- **No balance reservation** — funds are not locked until the stop triggers
+- The order must be fully signed at submission (same Ed25519 signature as a regular order)
+- Use `trigger_above: true` for stop-loss on longs / take-profit on shorts
+- Use `trigger_above: false` for take-profit on longs / stop-loss on shorts
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/orders/stop/submit` | POST | Submit a stop order |
+| `/orders/stop/cancel` | POST | Cancel a pending stop order |
+| `/orders/stop/{user_pubkey}` | GET | Get user's pending stop orders |
 
 ## Security Best Practices
 
