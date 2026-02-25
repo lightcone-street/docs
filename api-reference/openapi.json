@@ -233,7 +233,7 @@
       "get": {
         "tags": ["Orders"],
         "summary": "Get user orders and balances",
-        "description": "Returns all open orders (including trigger orders) and balances for the authenticated user across all markets",
+        "description": "Returns all open orders and balances for the authenticated user across all markets",
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           {
