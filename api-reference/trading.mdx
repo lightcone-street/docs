@@ -41,8 +41,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         market: market_pda,
         base_mint: base_token,   // e.g., RWin-BTC
         quote_mint: quote_token, // e.g., RWin-USDC
-        maker_amount: 650_000,   // quote tokens you give (6 decimals)
-        taker_amount: 1_000_000, // base tokens you receive (6 decimals)
+        maker_amount: 650_000,   // amount_in: quote tokens you give (6 decimals)
+        taker_amount: 1_000_000, // amount_out: base tokens you receive (6 decimals)
         expiration: 0,
     });
 
@@ -57,8 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         base_token: base_token.to_string(),
         quote_token: quote_token.to_string(),
         side: 0,
-        maker_amount: order.maker_amount,
-        taker_amount: order.taker_amount,
+        amount_in: order.maker_amount,
+        amount_out: order.taker_amount,
         expiration: order.expiration,
         signature: hex::encode(order.signature),
         orderbook_id: "orderbook_id".to_string(),
@@ -87,8 +87,8 @@ const order = createSignedBidOrder(
     market: new PublicKey(marketPda),
     baseMint: new PublicKey(baseToken),   // e.g., RWin-BTC
     quoteMint: new PublicKey(quoteToken), // e.g., RWin-USDC
-    makerAmount: 650_000n,   // quote tokens you give (6 decimals)
-    takerAmount: 1_000_000n, // base tokens you receive (6 decimals)
+    makerAmount: 650_000n,   // amount_in: quote tokens you give (6 decimals)
+    takerAmount: 1_000_000n, // amount_out: base tokens you receive (6 decimals)
     expiration: 0n,
   },
   keypair
@@ -122,8 +122,8 @@ order = create_signed_bid_order(
         market=Pubkey.from_string(market_pda),
         base_mint=Pubkey.from_string(base_token),   # e.g., RWin-BTC
         quote_mint=Pubkey.from_string(quote_token),  # e.g., RWin-USDC
-        maker_amount=650_000,    # quote tokens you give (6 decimals)
-        taker_amount=1_000_000,  # base tokens you receive (6 decimals)
+        maker_amount=650_000,    # amount_in: quote tokens you give (6 decimals)
+        taker_amount=1_000_000,  # amount_out: base tokens you receive (6 decimals)
         expiration=0,
     ),
     keypair,
@@ -150,8 +150,8 @@ Offset  Size  Field
 72      32    base_token pubkey
 104     32    quote_token pubkey
 136     1     side (0=bid, 1=ask)
-137     8     maker_amount (u64 LE)
-145     8     taker_amount (u64 LE)
+137     8     amount_in (u64 LE)
+145     8     amount_out (u64 LE)
 153     8     expiration (i64 LE)
 ───────────────────────────
         161   Total bytes
@@ -173,8 +173,8 @@ function createOrderHash(order: {
   base_token: Uint8Array; // 32 bytes
   quote_token: Uint8Array;// 32 bytes
   side: number;
-  maker_amount: bigint;
-  taker_amount: bigint;
+  amount_in: bigint;
+  amount_out: bigint;
   expiration: bigint;
 }): Uint8Array {
   const buffer = new ArrayBuffer(161);
@@ -193,10 +193,10 @@ function createOrderHash(order: {
   bytes.set(order.quote_token, 104);
   // side (1 byte)
   view.setUint8(136, order.side);
-  // maker_amount (u64 LE)
-  view.setBigUint64(137, order.maker_amount, true);
-  // taker_amount (u64 LE)
-  view.setBigUint64(145, order.taker_amount, true);
+  // amount_in (u64 LE)
+  view.setBigUint64(137, order.amount_in, true);
+  // amount_out (u64 LE)
+  view.setBigUint64(145, order.amount_out, true);
   // expiration (i64 LE)
   view.setBigInt64(153, order.expiration, true);
 
@@ -243,8 +243,8 @@ def create_order_hash(
     base_token: Pubkey,
     quote_token: Pubkey,
     side: int,
-    maker_amount: int,
-    taker_amount: int,
+    amount_in: int,
+    amount_out: int,
     expiration: int
 ) -> bytes:
     # Pack 161 bytes
@@ -257,8 +257,8 @@ def create_order_hash(
     message += bytes(base_token) # 32 bytes
     message += bytes(quote_token)# 32 bytes
     message += struct.pack('B', side)  # 1 byte
-    message += struct.pack('<Q', maker_amount)  # u64 LE
-    message += struct.pack('<Q', taker_amount)  # u64 LE
+    message += struct.pack('<Q', amount_in)  # u64 LE
+    message += struct.pack('<Q', amount_out)  # u64 LE
     message += struct.pack('<q', expiration)    # i64 LE
 
     # Keccak256 hash
@@ -275,8 +275,8 @@ hash_bytes = create_order_hash(
     base_token=base_token,
     quote_token=quote_token,
     side=0,
-    maker_amount=650000,
-    taker_amount=1000000,
+    amount_in=650000,
+    amount_out=1000000,
     expiration=0
 )
 signature = keypair.sign_message(hash_bytes)

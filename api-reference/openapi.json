@@ -232,8 +232,8 @@
     "/users/orders": {
       "get": {
         "tags": ["Orders"],
-        "summary": "Get user orders, trigger orders, and balances",
-        "description": "Returns all open orders, pending trigger orders, and balances for the authenticated user across all markets.",
+        "summary": "Get user orders and balances",
+        "description": "Returns all open orders (including trigger orders) and balances for the authenticated user across all markets",
         "security": [{ "cookieAuth": [] }],
         "parameters": [
           {
@@ -270,12 +270,8 @@
                     "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
                     "orders": {
                       "type": "array",
+                      "description": "All orders including limit and trigger orders, distinguished by `order_type`",
                       "items": { "$ref": "#/components/schemas/Order" }
-                    },
-                    "trigger_orders": {
-                      "type": "array",
-                      "description": "Pending trigger orders (stop-loss, take-profit)",
-                      "items": { "$ref": "#/components/schemas/TriggerOrderInfo" }
                     },
                     "balances": {
                       "type": "array",
@@ -926,7 +922,12 @@
           "base_mint": { "type": "string", "description": "Base token mint address", "example": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR" },
           "quote_mint": { "type": "string", "description": "Quote token mint address", "example": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF" },
           "outcome_index": { "type": "integer", "description": "Outcome index (0=YES, 1=NO)", "example": 0 },
-          "status": { "type": "string", "description": "Order status: OPEN (resting on book), MATCHING (in-flight tx), FILLED, CANCELLED", "example": "OPEN", "enum": ["OPEN", "MATCHING", "FILLED", "CANCELLED"] }
+          "status": { "type": "string", "description": "Order status: OPEN (resting on book), MATCHING (in-flight tx), FILLED, CANCELLED, PENDING (trigger orders awaiting trigger)", "example": "OPEN", "enum": ["OPEN", "MATCHING", "FILLED", "CANCELLED", "PENDING"] },
+          "order_type": { "type": "string", "description": "Order type discriminator", "example": "limit", "enum": ["limit", "trigger"] },
+          "trigger_order_id": { "type": "string", "nullable": true, "description": "Trigger order ID (only present for trigger orders)", "example": "stop_abc123def456..." },
+          "trigger_price": { "type": "string", "nullable": true, "description": "Trigger price as decimal string (only present for trigger orders)", "example": "0.650000" },
+          "trigger_type": { "type": "string", "nullable": true, "description": "SL = stop-loss, TP = take-profit (only present for trigger orders)", "enum": ["SL", "TP"] },
+          "tif": { "type": "integer", "nullable": true, "description": "Time-in-force for the order placed when triggered (only present for trigger orders)", "example": 0 }
         }
       },
       "UserPositionsResponse": {
@@ -1034,23 +1035,6 @@
           "trades": { "type": "array", "items": { "$ref": "#/components/schemas/Trade" } },
           "has_more": { "type": "boolean", "example": true },
           "next_cursor": { "type": "integer", "example": 1233 }
-        }
-      },
-      "TriggerOrderInfo": {
-        "type": "object",
-        "description": "A pending trigger order (stop-loss or take-profit) that has not yet been triggered.",
-        "properties": {
-          "trigger_order_id": { "type": "string", "example": "stop_abc123def456..." },
-          "order_hash": { "type": "string", "example": "abc123def456..." },
-          "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
-          "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
-          "trigger_price": { "type": "string", "description": "Trigger price as decimal string", "example": "0.650000" },
-          "trigger_type": { "type": "string", "enum": ["SL", "TP"], "description": "SL = stop-loss, TP = take-profit", "example": "TP" },
-          "side": { "type": "integer", "example": 0 },
-          "maker_amount": { "type": "integer", "example": 350000 },
-          "taker_amount": { "type": "integer", "example": 650000 },
-          "tif": { "type": "integer", "example": 0 },
-          "created_at": { "type": "integer", "format": "int64", "example": 1736456789 }
         }
       },
       "CreateOrderbookRequest": {
