@@ -924,10 +924,10 @@
           "outcome_index": { "type": "integer", "description": "Outcome index (0=YES, 1=NO)", "example": 0 },
           "status": { "type": "string", "description": "Order status: OPEN (resting on book), MATCHING (in-flight tx), FILLED, CANCELLED, PENDING (trigger orders awaiting trigger)", "example": "OPEN", "enum": ["OPEN", "MATCHING", "FILLED", "CANCELLED", "PENDING"] },
           "order_type": { "type": "string", "description": "Order type discriminator", "example": "limit", "enum": ["limit", "trigger"] },
-          "trigger_order_id": { "type": "string", "nullable": true, "description": "Trigger order ID (only present for trigger orders)" },
-          "trigger_price": { "type": "string", "nullable": true, "description": "Trigger price as decimal string (only present for trigger orders)" },
-          "trigger_type": { "type": "string", "nullable": true, "description": "SL = stop-loss, TP = take-profit (only present for trigger orders)", "enum": ["SL", "TP"] },
-          "tif": { "type": "integer", "nullable": true, "description": "Time-in-force for the order placed when triggered (only present for trigger orders)" }
+          "trigger_order_id": { "type": "string", "nullable": true, "description": "Trigger order ID (only present for trigger orders)", "example": null },
+          "trigger_price": { "type": "string", "nullable": true, "description": "Trigger price as decimal string (only present for trigger orders)", "example": null },
+          "trigger_type": { "type": "string", "nullable": true, "description": "SL = stop-loss, TP = take-profit (only present for trigger orders)", "enum": ["SL", "TP"], "example": null },
+          "tif": { "type": "integer", "nullable": true, "description": "Time-in-force for the order placed when triggered (only present for trigger orders)", "example": null }
         }
       },
       "UserPositionsResponse": {
