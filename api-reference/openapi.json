@@ -903,7 +903,8 @@
           "orderbook_id": { "type": "string", "example": "5BNoPgYe_CrhujZLf" },
           "tif": { "type": "string", "enum": ["GTC", "IOC", "FOK", "ALO"], "default": "GTC", "description": "Time-in-force: GTC (Good Till Cancel, default), IOC (Immediate or Cancel), FOK (Fill or Kill), ALO (Post-Only / Add Liquidity Only)", "example": "GTC" },
           "trigger_type": { "type": "string", "nullable": true, "enum": ["SL", "TP"], "description": "SL for stop-loss, TP for take-profit", "example": "TP" },
-          "trigger_price": { "type": "number", "nullable": true, "description": "Trigger price as a decimal. The order stays dormant until last trade price crosses this level.", "example": 0.65 }
+          "trigger_price": { "type": "number", "nullable": true, "description": "Trigger price as a decimal. The order stays dormant until last trade price crosses this level.", "example": 0.65 },
+          "deposit_source": { "type": "string", "enum": ["auto", "global", "market"], "default": "auto", "description": "Where to source collateral: auto (market balance first, global fallback), global (always use global deposit pool), or market (market balance only)" }
         }
       },
       "SubmitOrderResponse": {
