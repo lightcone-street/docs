@@ -162,7 +162,7 @@
       "get": {
         "tags": ["Positions"],
         "summary": "Get user positions",
-        "description": "Returns all positions (balances) for a user across all markets.",
+        "description": "Returns all positions (balances) for a user across all markets, including global deposit pool balances.",
         "parameters": [
           {
             "name": "user_pubkey",
@@ -181,10 +181,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "user_pubkey": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+                    "owner": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
+                    "total_markets": { "type": "integer", "example": 2 },
                     "positions": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/UserPositionResponse" }
+                    },
+                    "global_deposits": {
+                      "type": "array",
+                      "description": "Unallocated funds in the user's global deposit pool",
+                      "items": { "$ref": "#/components/schemas/GlobalDepositBalance" }
                     }
                   }
                 }
@@ -198,7 +204,7 @@
       "get": {
         "tags": ["Positions"],
         "summary": "Get user market positions",
-        "description": "Returns all positions for a user in a specific market.",
+        "description": "Returns all positions for a user in a specific market, including global deposit pool balances.",
         "parameters": [
           {
             "name": "user_pubkey",
@@ -223,6 +229,33 @@
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/UserMarketPositionsResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/info": {
+      "get": {
+        "tags": ["Markets"],
+        "summary": "Get info",
+        "description": "Returns protocol-level details",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "exchange": { "$ref": "#/components/schemas/ExchangeState" },
+                    "global_deposit_tokens": {
+                      "type": "array",
+                      "description": "Whitelisted tokens for the global deposit pool (cross-market collateral)",
+                      "items": { "$ref": "#/components/schemas/GlobalDepositToken" }
+                    }
+                  }
+                }
               }
             }
           }
@@ -935,7 +968,8 @@
         "properties": {
           "owner": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "total_markets": { "type": "integer", "example": 3 },
-          "positions": { "type": "array", "items": { "$ref": "#/components/schemas/UserPositionResponse" } }
+          "positions": { "type": "array", "items": { "$ref": "#/components/schemas/UserPositionResponse" } },
+          "global_deposits": { "type": "array", "description": "Unallocated funds in the user's global deposit pool", "items": { "$ref": "#/components/schemas/GlobalDepositBalance" } }
         }
       },
       "UserMarketPositionsResponse": {
@@ -943,7 +977,37 @@
         "properties": {
           "owner": { "type": "string", "example": "DYw8jCTfwHNRJhhmFcbXvVDTqWMEVFBX6ZKUmG5CNSKK" },
           "market_pubkey": { "type": "string", "example": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL" },
-          "positions": { "type": "array", "items": { "$ref": "#/components/schemas/UserPositionResponse" } }
+          "positions": { "type": "array", "items": { "$ref": "#/components/schemas/UserPositionResponse" } },
+          "global_deposits": { "type": "array", "description": "Unallocated funds in the user's global deposit pool", "items": { "$ref": "#/components/schemas/GlobalDepositBalance" } }
+        }
+      },
+      "GlobalDepositBalance": {
+        "type": "object",
+        "description": "A user's balance in their global deposit pool for a specific token",
+        "properties": {
+          "deposit_mint": { "type": "string", "description": "Deposit token mint address", "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy" },
+          "symbol": { "type": "string", "description": "Token symbol", "example": "lcBTC" },
+          "balance": { "type": "string", "description": "Balance as decimal string scaled by token decimals", "example": "1.50000000" }
+        }
+      },
+      "ExchangeState": {
+        "type": "object",
+        "properties": {
+          "exchange_pda": { "type": "string", "description": "Exchange PDA address", "example": "Ex1111111111111111111111111111111111111111" },
+          "authority": { "type": "string", "description": "Protocol authority pubkey", "example": "Auth1111111111111111111111111111111111111111" },
+          "market_count": { "type": "integer", "description": "Total number of markets", "example": 5 },
+          "paused": { "type": "boolean", "description": "Whether the protocol is paused", "example": false }
+        }
+      },
+      "GlobalDepositToken": {
+        "type": "object",
+        "description": "A whitelisted global deposit token with metadata",
+        "properties": {
+          "mint": { "type": "string", "description": "Token mint address", "example": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy" },
+          "symbol": { "type": "string", "description": "Token symbol", "example": "lcBTC" },
+          "decimals": { "type": "integer", "description": "Token decimals", "example": 8 },
+          "icon_url": { "type": "string", "nullable": true, "description": "URL to token icon", "example": "https://example.com/icon.png" },
+          "active": { "type": "boolean", "description": "Whether the token is currently active for deposits", "example": true }
         }
       },
       "UserPositionResponse": {

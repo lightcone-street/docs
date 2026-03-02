@@ -10,6 +10,7 @@ The `user` channel provides a unified stream of all user-specific events:
 - Order status changes (matching, partial fills, full fills)
 - Order cancellations
 - Balance updates after deposits/withdrawals
+- Global deposit pool balance updates
 - Nonce updates (when `incrementNonce` is called on-chain)
 - Trigger order events (stop-loss, take-profit, triggered/failed/expired)
 
@@ -84,6 +85,12 @@ Immediately after subscribing, you receive the user's current state:
         ]
       }
     },
+    "global_deposits": [
+      {
+        "mint": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
+        "balance": "1.50000000"
+      }
+    ],
     "nonce": 0
   }
 }
@@ -250,6 +257,23 @@ Deposits and withdrawals trigger `balance_update` events:
 }
 ```
 
+## Global Deposit Updates
+
+When a user deposits to or withdraws from the global deposit pool, a `global_deposit_update` event is emitted with the new balance:
+
+```json
+{
+  "type": "user",
+  "version": 0.1,
+  "data": {
+    "event_type": "global_deposit_update",
+    "mint": "4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy",
+    "balance": "1.50000000",
+    "timestamp": "2026-01-09T20:43:24.123Z"
+  }
+}
+```
+
 ## Nonce Updates
 
 When a user calls `incrementNonce` on-chain, a `nonce` event is emitted. This cancels **all open orders across all markets** that were placed with a nonce below the new value. The client should treat this message as a bulk cancel of all existing orders.
@@ -329,6 +353,7 @@ When a trigger order triggers successfully, you will also receive the normal **o
 | `order` | `UPDATE` | Order status change (matching, filled, partial fill) |
 | `order` | `CANCELLATION` | Order cancelled by user |
 | `balance_update` | - | Balance change from deposit/withdrawal |
+| `global_deposit_update` | - | Global deposit pool balance changed |
 | `nonce` | - | User nonce incremented on-chain (stale orders cancelled) |
 | `trigger_order` | - | Trigger order (stop-loss, take-profit, conditional) triggered, failed, or expired |
 
