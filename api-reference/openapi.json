@@ -248,6 +248,11 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "program_address": {
+                      "type": "string",
+                      "description": "Solana program address for the Lightcone smart contract",
+                      "example": "8nzsoyHZFYig3uN3M717Q47MtLqzx2V2UAKaPTqDy5rV"
+                    },
                     "exchange": { "$ref": "#/components/schemas/ExchangeState" },
                     "global_deposit_tokens": {
                       "type": "array",
