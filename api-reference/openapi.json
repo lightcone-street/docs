@@ -248,11 +248,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "program_address": {
-                      "type": "string",
-                      "description": "Solana program address for the Lightcone smart contract",
-                      "example": "8nzsoyHZFYig3uN3M717Q47MtLqzx2V2UAKaPTqDy5rV"
-                    },
                     "exchange": { "$ref": "#/components/schemas/ExchangeState" },
                     "global_deposit_tokens": {
                       "type": "array",
@@ -999,6 +994,7 @@
       "ExchangeState": {
         "type": "object",
         "properties": {
+          "program_address": { "type": "string", "description": "Solana program address for the Lightcone smart contract", "example": "8nzsoyHZFYig3uN3M717Q47MtLqzx2V2UAKaPTqDy5rV" },
           "exchange_pda": { "type": "string", "description": "Exchange PDA address", "example": "Ex1111111111111111111111111111111111111111" },
           "authority": { "type": "string", "description": "Protocol authority pubkey", "example": "Auth1111111111111111111111111111111111111111" },
           "market_count": { "type": "integer", "description": "Total number of markets", "example": 5 },
