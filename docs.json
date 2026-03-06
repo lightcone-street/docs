@@ -45,6 +45,12 @@
             "pages": [
               "api-reference/rest-introduction",
               {
+                "group": "Testnet",
+                "pages": [
+                  "api-reference/endpoint/claim"
+                ]
+              },
+              {
                 "group": "Markets",
                 "pages": [
                   "api-reference/endpoint/get-info",

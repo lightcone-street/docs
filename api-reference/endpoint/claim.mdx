@@ -1,0 +1,72 @@
+---
+title: 'Claim Testnet Tokens'
+description: 'Request devnet SOL and tokens'
+---
+
+## Overview
+
+The claim endpoint sends testnet tokens to a specified wallet address.
+
+Each wallet can claim once every **8 hours**.
+
+## Tokens Sent
+
+| Token | Amount |
+|-------|--------|
+| SOL (devnet) | 0.01 |
+| lcBTC | 1 |
+| lcUSDC | 100,000 |
+
+**Token Mints**
+- lcBTC (8 decimals): `4o5Vsd7iPu97qkKypojXDbpu8BR3t5poD8ThGo8hnUKy`
+- lcUSDC (6 decimals): `7SrxsoXjNR7Y8T3koJCt1yV4FrNUumoAUrJExDt6tQez`
+
+## Request
+
+`POST /api/claim`
+
+```json
+{
+  "wallet_address": "EzW4uwQfdzvqG51vvCrLxjvrZ2vyDpWndAV3YZuaV8if"
+}
+```
+
+### Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `wallet_address` | string | Yes | The Solana wallet address to send tokens to |
+
+## Response
+
+### Success (200)
+
+```json
+{
+  "signature": "5UfD...txSig",
+  "sol": 0.01,
+  "tokens": [
+    { "symbol": "lcBTC", "amount": 1 },
+    { "symbol": "lcUSDC", "amount": 100000 }
+  ]
+}
+```
+
+### Cooldown Active (429)
+
+Returned when the wallet has already claimed within the last 8 hours.
+
+```json
+{
+  "error": "Cooldown active",
+  "retry_after_secs": 25140
+}
+```
+
+### Invalid Address (400)
+
+```json
+{
+  "error": "Invalid wallet address"
+}
+```
