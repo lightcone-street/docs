@@ -115,7 +115,7 @@
     }
   },
   "background": {
-    "decoration": "gradient",
+    "decoration": "grid",
     "color": {
       "light": "#fafafa"
     }
