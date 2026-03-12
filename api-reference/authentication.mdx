@@ -432,7 +432,7 @@ response = requests.post(
 
 #### Cancel All Orders
 
-To cancel all orders, sign the string `"cancel_all:<user_pubkey>:<timestamp>"` where `timestamp` is the current Unix time in seconds.
+To cancel all orders, sign the string `"cancel_all:<user_pubkey>:<orderbook_id>:<timestamp>:<salt>"` where `timestamp` is the current Unix time in seconds, `orderbook_id` is the optional scope (empty string if cancelling all), and `salt` is a random unique string for one-time use.
 
 <CodeGroup>
 
@@ -443,7 +443,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 let timestamp = SystemTime::now()
     .duration_since(UNIX_EPOCH)?
     .as_secs() as i64;
-let message = format!("cancel_all:{}:{}", keypair.pubkey(), timestamp);
+let orderbook_id = "5BNoPgYe_CrhujZLf"; // or "" to cancel all orderbooks
+let salt = uuid::Uuid::new_v4().to_string();
+let message = format!("cancel_all:{}:{}:{}:{}", keypair.pubkey(), orderbook_id, timestamp, salt);
 
 // Sign the message as UTF-8 bytes
 let signature = keypair.sign_message(message.as_bytes());
@@ -454,9 +456,10 @@ let response = client
     .post("https://tapi.lightcone.xyz/api/orders/cancel-all")
     .json(&json!({
         "user_pubkey": keypair.pubkey().to_string(),
-        "orderbook_id": "5BNoPgYe_CrhujZLf",
+        "orderbook_id": orderbook_id,
         "signature": signature_hex,
         "timestamp": timestamp,
+        "salt": salt,
     }))
     .send()
     .await?;
@@ -464,10 +467,13 @@ let response = client
 
 ```typescript TypeScript
 import nacl from 'tweetnacl';
+import { randomUUID } from 'crypto';
 
 // Build the cancel_all message
 const timestamp = Math.floor(Date.now() / 1000);
-const message = `cancel_all:${keypair.publicKey.toBase58()}:${timestamp}`;
+const orderbookId = "5BNoPgYe_CrhujZLf"; // or "" to cancel all orderbooks
+const salt = randomUUID();
+const message = `cancel_all:${keypair.publicKey.toBase58()}:${orderbookId}:${timestamp}:${salt}`;
 
 // Sign the message as UTF-8 bytes
 const signature = nacl.sign.detached(
@@ -482,22 +488,26 @@ const response = await fetch('https://tapi.lightcone.xyz/api/orders/cancel-all',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     user_pubkey: keypair.publicKey.toBase58(),
-    orderbook_id: "5BNoPgYe_CrhujZLf",
+    orderbook_id: orderbookId,
     signature: signatureHex,
     timestamp,
+    salt,
   }),
 });
 ```
 
 ```python Python
 import time
+import uuid
 from solders.keypair import Keypair
 import requests
 
 # Build the cancel_all message
 timestamp = int(time.time())
 pubkey = str(keypair.pubkey())
-message = f"cancel_all:{pubkey}:{timestamp}"
+orderbook_id = "5BNoPgYe_CrhujZLf"  # or "" to cancel all orderbooks
+salt = str(uuid.uuid4())
+message = f"cancel_all:{pubkey}:{orderbook_id}:{timestamp}:{salt}"
 
 # Sign the message as UTF-8 bytes
 signature = keypair.sign_message(message.encode('utf-8'))
@@ -508,9 +518,10 @@ response = requests.post(
     "https://tapi.lightcone.xyz/api/orders/cancel-all",
     json={
         "user_pubkey": pubkey,
-        "orderbook_id": "5BNoPgYe_CrhujZLf",
+        "orderbook_id": orderbook_id,
         "signature": signature_hex,
         "timestamp": timestamp,
+        "salt": salt,
     }
 )
 ```
