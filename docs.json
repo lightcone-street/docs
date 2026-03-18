@@ -68,6 +68,7 @@
                   "api-reference/endpoint/get-trades"
                 ]
               },
+              "api-reference/deposits",
               {
                 "group": "User",
                 "pages": [

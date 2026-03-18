@@ -1,0 +1,15 @@
+---
+title: 'Deposits & Withdrawals'
+description: 'Managing collateral across global and market pools'
+---
+
+The Lightcone program supports two paths to deposit and withdraw collateral.
+
+**Global deposit pool** — Deposit once, create limit orders across any market with the same capital
+**Market position** — Market-specific deposit and withdraw
+
+For simplicity, the frontend only supports one path: the Market Position, which locks your collateral and mints conditional tokens at deposit time.
+
+But for market makers, locking collateral per market leads to capital inefficiency. Market makers should deposit to the global deposit pool instead. Once deposited, the same collateral (e.g. USDC or BTC) can be used to market make across unlimited markets simultaneously. When an order is filled, the collateral is automatically split into conditional tokens and any unfillable resting orders are cancelled.
+
+When depositing or submitting orders, set the `deposit_source` field to control where collateral is sourced from and to. This is defaulted to global deposit pool on the SDK.

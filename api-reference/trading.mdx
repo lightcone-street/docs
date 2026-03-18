@@ -14,11 +14,11 @@ Amounts are in **lamports**. Conditional tokens inherit decimals from collateral
 
 ## Signing
 
-Orders require Ed25519 signatures over a 161-byte message hash.
+Orders require Ed25519 signatures over a 169-byte message hash.
 
 ## Using the SDK (Recommended)
 
-The SDK handles the 161-byte message hash construction and signing:
+The SDK handles the 169-byte message hash construction and signing:
 
 <CodeGroup>
 
@@ -139,25 +139,26 @@ response = await client.submit_order(
 
 ## Order Hash Structure
 
-Orders are signed over a 161-byte Keccak256 hash with this layout:
+Orders are signed over a 169-byte Keccak256 hash with this layout:
 
 ```
 Offset  Size  Field
 ──────  ────  ─────────────
 0       8     nonce (u64 LE)
-8       32    maker pubkey
-40      32    market pubkey
-72      32    base_token pubkey
-104     32    quote_token pubkey
-136     1     side (0=bid, 1=ask)
-137     8     amount_in (u64 LE)
-145     8     amount_out (u64 LE)
-153     8     expiration (i64 LE)
+8       8     salt (u64 LE)
+16      32    maker pubkey
+48      32    market pubkey
+80      32    base_token pubkey
+112     32    quote_token pubkey
+144     1     side (0=bid, 1=ask)
+145     8     amount_in (u64 LE)
+153     8     amount_out (u64 LE)
+161     8     expiration (i64 LE)
 ───────────────────────────
-        161   Total bytes
+        169   Total bytes
 ```
 
-The signature is Ed25519 over `keccak256(message_bytes)`.
+The `salt` is a unique value per order (e.g. nanosecond timestamp) ensuring distinct hashes even when all other fields match. The signature is Ed25519 over `keccak256(message_bytes)`.
 
 ## Manual Implementation
 
@@ -168,6 +169,7 @@ import { keccak_256 } from '@noble/hashes/sha3';
 
 function createOrderHash(order: {
   nonce: bigint;
+  salt: bigint;
   maker: Uint8Array;      // 32 bytes
   market: Uint8Array;     // 32 bytes
   base_token: Uint8Array; // 32 bytes
@@ -177,28 +179,30 @@ function createOrderHash(order: {
   amount_out: bigint;
   expiration: bigint;
 }): Uint8Array {
-  const buffer = new ArrayBuffer(161);
+  const buffer = new ArrayBuffer(169);
   const view = new DataView(buffer);
   const bytes = new Uint8Array(buffer);
 
   // nonce (u64 LE)
   view.setBigUint64(0, order.nonce, true);
+  // salt (u64 LE)
+  view.setBigUint64(8, order.salt, true);
   // maker (32 bytes)
-  bytes.set(order.maker, 8);
+  bytes.set(order.maker, 16);
   // market (32 bytes)
-  bytes.set(order.market, 40);
+  bytes.set(order.market, 48);
   // base_token (32 bytes)
-  bytes.set(order.base_token, 72);
+  bytes.set(order.base_token, 80);
   // quote_token (32 bytes)
-  bytes.set(order.quote_token, 104);
+  bytes.set(order.quote_token, 112);
   // side (1 byte)
-  view.setUint8(136, order.side);
+  view.setUint8(144, order.side);
   // amount_in (u64 LE)
-  view.setBigUint64(137, order.amount_in, true);
+  view.setBigUint64(145, order.amount_in, true);
   // amount_out (u64 LE)
-  view.setBigUint64(145, order.amount_out, true);
+  view.setBigUint64(153, order.amount_out, true);
   // expiration (i64 LE)
-  view.setBigInt64(153, order.expiration, true);
+  view.setBigInt64(161, order.expiration, true);
 
   return keccak_256(bytes);
 }
@@ -214,6 +218,7 @@ await fetch('https://tapi.lightcone.xyz/api/orders/submit', {
   body: JSON.stringify({
     maker: keypair.publicKey.toBase58(),
     nonce: Number(nonce),
+    salt: Number(salt),
     market_pubkey: marketPubkey,
     base_token: baseToken,
     quote_token: quoteToken,
@@ -238,6 +243,7 @@ import requests
 
 def create_order_hash(
     nonce: int,
+    salt: int,
     maker: Pubkey,
     market: Pubkey,
     base_token: Pubkey,
@@ -247,11 +253,9 @@ def create_order_hash(
     amount_out: int,
     expiration: int
 ) -> bytes:
-    # Pack 161 bytes
-    message = struct.pack(
-        '<Q',  # nonce (u64 LE)
-        nonce
-    )
+    # Pack 169 bytes
+    message = struct.pack('<Q', nonce)   # u64 LE
+    message += struct.pack('<Q', salt)   # u64 LE
     message += bytes(maker)      # 32 bytes
     message += bytes(market)     # 32 bytes
     message += bytes(base_token) # 32 bytes
@@ -286,6 +290,7 @@ response = requests.post(
     json={
         "maker": str(keypair.pubkey()),
         "nonce": nonce,
+        "salt": salt,
         "market_pubkey": str(market_pubkey),
         "base_token": str(base_token),
         "quote_token": str(quote_token),
@@ -306,6 +311,7 @@ response = requests.post(
 |-------|------|-------------|
 | `maker` | string | Your Solana wallet public key |
 | `nonce` | integer | Unique identifier (typically timestamp in ms) |
+| `salt` | integer | Unique per-order value (e.g. nanosecond timestamp) |
 | `market_pubkey` | string | Market public key |
 | `base_token` | string | Base token mint address |
 | `quote_token` | string | Quote token mint address |
