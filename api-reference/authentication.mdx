@@ -207,23 +207,26 @@ cancel_all_result = client.cancel_all_orders(
 
 #### Create Order
 
-Orders are signed with Ed25519 over a Keccak256 hash of a 161-byte payload, structured as follows.
+Orders are signed with Ed25519 over a Keccak256 hash of a 169-byte payload, structured as follows.
 
 ```text
 Offset  Size  Field
 ──────  ────  ─────────────
 0       8     nonce (u64 LE)
-8       32    maker pubkey
-40      32    market pubkey
-72      32    base_token pubkey
-104     32    quote_token pubkey
-136     1     side (0=bid, 1=ask)
-137     8     amount_in (u64 LE)
-145     8     amount_out (u64 LE)
-153     8     expiration (i64 LE)
+8       8     salt (u64 LE)
+16      32    maker pubkey
+48      32    market pubkey
+80      32    base_token pubkey
+112     32    quote_token pubkey
+144     1     side (0=bid, 1=ask)
+145     8     amount_in (u64 LE)
+153     8     amount_out (u64 LE)
+161     8     expiration (i64 LE)
 ───────────────────────────
-        161   Total bytes
+        169   Total bytes
 ```
+
+The `salt` field is a unique value per order (e.g. nanosecond timestamp) that ensures distinct order hashes even when all other fields are identical.
 
 <Note>
 `amount_in` and `amount_out` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
@@ -245,9 +248,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let keypair = Keypair::new();
     
     // Create order data
+    let salt = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_nanos() as u64;
     let order = json!({
         "maker": keypair.pubkey().to_string(),
         "nonce": 1736456789000i64,
+        "salt": salt,
         "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
         "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
         "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
@@ -291,6 +298,7 @@ const keypair = Keypair.generate();
 const order = {
   maker: keypair.publicKey.toBase58(),
   nonce: Date.now(),
+  salt: Number(process.hrtime.bigint() % BigInt(2**53)),
   market_pubkey: "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
   base_token: "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
   quote_token: "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
@@ -328,6 +336,7 @@ keypair = Keypair()
 order = {
     "maker": str(keypair.pubkey()),
     "nonce": 1736456789000,
+    "salt": time.time_ns(),
     "market_pubkey": "FjVJXzKknRoxgdQHNfdMkzq2vswGacM3MHiZhahczBsL",
     "base_token": "5BNoPgYemyrbS4ub7MTuKczoYA7qtJZTj5m7xVanupPR",
     "quote_token": "CrhujZLfmzffVjwUTk6wL1mYeF9nRkx4MBvHmEotnaDF",
