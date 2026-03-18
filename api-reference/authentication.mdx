@@ -226,8 +226,6 @@ Offset  Size  Field
         169   Total bytes
 ```
 
-The `salt` field is a unique value per order (e.g. nanosecond timestamp) that ensures distinct order hashes even when all other fields are identical.
-
 <Note>
 `amount_in` and `amount_out` must be in token lamports (smallest token unit). API responses return scaled decimal strings for display, but order submissions use lamport values specific to the token being referenced.
 </Note>
@@ -798,5 +796,3 @@ print(orders_response.json())
 </CodeGroup>
 
 </Accordion>
-
-
