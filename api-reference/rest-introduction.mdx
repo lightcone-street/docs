@@ -21,20 +21,22 @@ https://tapi.lightcone.xyz/api
 
 ## Protocol
 
-**Brief walkthrough**
+Lightcone's CLOB is a hybrid-decentralized orderbook. Operators match orders offchain, while asset issuance, settlement and signature verification are executed onchain, non-custodially and trustlessly. Orders are Ed25519-signed payloads.
 
-Lightcone's CLOB is hybrid-decentralized orderbook; Operators match orders offchain, while asset issuance, settlement and signature verification are executed onchain, non-custodially and trustlessly. Orders are ED25519-signed payloads.
+Each market specifies **_Deposit Tokens_** available for trading _(e.g. USDC, wBTC)_. Deposit Tokens are held as collateral, against which **_Outcome Tokens_** are minted — one per possible outcome _(e.g. USDC => [<Badge size ="sm" className="badge-r">**A-USDC**</Badge>, <Badge size ="sm" className="badge-d">**B-USDC**</Badge>])_ — via a **_split_**. A full set of Outcome Tokens can **_merge_** back into the underlying Deposit Token.
 
-The protocol specifies, for each market, the **_Deposit Tokens_** that're available for trading _(e.g. USDC, wBTC, wETH)._
+Orderbooks facilitate swaps between **_Outcome Token pairs_** of the same outcome universe _(e.g. <Badge size ="sm" className="badge-r">**A-USDC**</Badge>/<Badge size ="sm" className="badge-r">**A-BTC**</Badge>)_.
 
-Deposit Tokens are held as collateral, against which a set of SPL **_Outcome Tokens_** are minted, one per possible outcome, _(e.g. USDC => [<Badge size ="sm" className="badge-r">**A-USDC**</Badge>, <Badge size ="sm" className="badge-d">**B-USDC**</Badge>])_, via what is called a **_split_**.
+After a market **_settles_**, the winning Outcome Tokens become **_redeemable 1:1_** for their Deposit Tokens, while all other Outcome Tokens become worthless.
 
-In the opposite direction - a full set of Outcome Tokens can **_merge_** to claim the underlying Deposit Tokens _(e.g. [<Badge size ="sm" className="badge-r">**A-USDC**</Badge>, <Badge size ="sm" className="badge-d">**A-USDC**</Badge>] => USDC)_
+## Deposits & withdrawals
 
-The protocol uses a custom Solana _**Orderbook**_ program facilitating swaps between _**Outcome Token pairs** of the same outcome (e.g. <Badge size ="sm" className="badge-r">**A-USDC**</Badge>/<Badge size ="sm" className="badge-r">**A-BTC**</Badge>)._ Note that orderbooks always pairs two Conditional Tokens of the **_same outcome universe_** against each other (_e.g. <Badge size ="sm" className="badge-r">**A**</Badge> with <Badge size ="sm" className="badge-r">**A**</Badge>, <Badge size ="sm" className="badge-d">**B**</Badge> with <Badge size ="sm" className="badge-d">**B**</Badge>)._
+The Lightcone program supports two paths to deposit and withdraw collateral.
 
-After a market **_settles_**, Outcome Tokens belonging to one Universe become **_redeemable 1:1_** for their corresponding Deposit Tokens _(e.g. if <Badge size ="sm" className="badge-d">**B**</Badge> outcome materialized, then <Badge size ="sm" className="badge-d">**B-USDC**</Badge> & <Badge size ="sm" className="badge-d">**B-BTC**</Badge> can redeem USDC, BTC respectively)_, while the Outcome Tokens in all other outcome universes become effectively worthless.
+**Global deposit pool** — Deposit once, create limit orders across any market with the same capital.  Collateral is only split into conditional tokens when an order fills, and unfillable resting orders are automatically cancelled. Recommended for market makers and set as the default `deposit_source` on the SDK
+
+**Market position** — Locks collateral into a specific market and mints conditional tokens at deposit time. Used by the frontend.
 
 ## Rate Limits
 
-The API enforces per-IP rate limiting. Each IP address is allowed a burst of up to 60 requests, after which requests are refilled at 10 per second. These rates will be changed at production
+Per-IP rate limiting. Burst of up to 60 requests, refilled at 10 per second. These rates will change at production.
