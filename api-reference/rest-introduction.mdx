@@ -38,12 +38,10 @@ After a market **_settles_**, Outcome Tokens belonging to one Universe become **
 
 The Lightcone program supports two paths to deposit and withdraw collateral.
 
-**Global deposit pool** — Deposit once, create limit orders across any market with the same capital.  Collateral is only split into conditional tokens when an order fills, and unfillable resting orders are automatically cancelled. Recommended for market makers.
+**Global deposit pool:** The global deposit pool is a common collateral pool to create limit orders across any market with the same capital.  The collateral is split and deposited into market position when an order fills, and unfillable orders are automatically cancelled. This makes capital more efficient and is recommended for market makers.
 
-**Market position** — Locks collateral into a specific market and mints conditional tokens at deposit time.
-
-Once deposited, the path is set at order submission time via the `deposit_source` field. The frontend defaults to the market path, the SDK to the global pool, and the API to auto.
+**Market pool:** Each market has its own pool that mints conditional tokens at deposit time.
 
 ## Rate Limits
 
-Per-IP rate limiting. Burst of up to 60 requests, refilled at 10 per second. These rates will change at production.
+Lightcone currently enforces a per-IP rate limiting at a burst up to 60 requests, refilled at 10 per second
