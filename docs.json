@@ -1,13 +1,20 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "almond",
   "name": "Lightcone",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#7FDAF8",
-    "dark": "#4F46E5"
+    "primary": "#505555",
+    "light": "#94DCF4",
+    "dark": "#505555"
   },
-  "favicon": "/favicon.svg",
+  "font": {
+    "family": "Inter",
+    "headings": {
+      "family": "Inter",
+      "weight": 700
+    }
+  },
+  "favicon": "/favicon.ico",
   "openapi": {
     "origin": "api-reference/openapi.json",
     "responseFieldsDefaultExpandDepth": 2
@@ -108,20 +115,25 @@
     "items": "toggle",
     "footer": "toggle"
   },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/lightconexyz",
-      "github": "https://github.com/lightcone-street/"
-    }
+  "navbar": {
+    "links": [
+      {
+        "label": " ",
+        "icon": "x-twitter",
+        "href": "https://x.com/lightconexyz"
+      },
+      {
+        "label": " ",
+        "icon": "github",
+        "href": "https://github.com/lightcone-street/"
+      }
+    ]
   },
   "background": {
-    "decoration": "grid",
     "color": {
-      "light": "#fafafa"
+      "light": "#f0f2fa",
+      "dark": "#242526"
     }
-  },
-  "topbar": {
-    "style": "gradient"
   },
   "stylesheets": [
     "/custom.css"
