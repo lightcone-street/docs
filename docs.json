@@ -3,9 +3,9 @@
   "theme": "maple",
   "name": "Lightcone",
   "colors": {
-    "primary": "#2f777c",
-    "light": "#7FDAF8",
-    "dark": "#2f777c"
+    "primary": "#45ACF8",
+    "light": "#45ACF8",
+    "dark": "#45ACF8"
   },
   "font": {
     "family": "Inter",
@@ -14,7 +14,7 @@
       "weight": 700
     }
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "openapi": {
     "origin": "api-reference/openapi.json",
     "responseFieldsDefaultExpandDepth": 2
