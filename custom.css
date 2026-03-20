@@ -38,6 +38,34 @@
 }
 
 
+/* Search bar - move from sidebar to top navbar */
+#search-bar-entry {
+  position: fixed !important;
+  top: 7px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 200 !important;
+  width: 360px !important;
+}
+
+/* Hide the mobile search entry since we repositioned the main one */
+#search-bar-entry-mobile {
+  display: none !important;
+}
+
+/* Move sidebar content up to fill gap left by search bar */
+#navigation-items {
+  margin-top: -50px !important;
+}
+
+/* Hide AI assistant elements */
+#assistant-entry,
+#assistant-entry-mobile,
+#chat-assistant-sheet,
+#chat-assistant-textarea {
+  display: none !important;
+}
+
 /* LIGHT MODE */
 :root:not(.dark) .prose,
 :root:not(.dark) .prose p,
