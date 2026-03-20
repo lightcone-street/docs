@@ -122,14 +122,10 @@
     }
   },
   "background": {
-    "decoration": "grid",
     "color": {
       "light": "#f0f2fa",
       "dark": "#242526"
     }
-  },
-  "topbar": {
-    "style": "gradient"
   },
   "stylesheets": [
     "/custom.css"
