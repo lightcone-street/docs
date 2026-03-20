@@ -1,11 +1,11 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "almond",
   "name": "Lightcone",
   "colors": {
-    "primary": "#45ACF8",
-    "light": "#45ACF8",
-    "dark": "#45ACF8"
+    "primary": "#505555",
+    "light": "#94DCF4",
+    "dark": "#505555"
   },
   "font": {
     "family": "Inter",
