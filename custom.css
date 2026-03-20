@@ -38,14 +38,16 @@
 }
 
 
-/* Search bar - move from sidebar to top navbar */
+/* Search bar - align with page content and fill its width */
 #search-bar-entry {
   position: fixed !important;
   top: 7px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
+  left: 570px !important;
+  right: 600px !important;
+  transform: none !important;
   z-index: 200 !important;
-  width: 360px !important;
+  width: auto !important;
+  max-width: calc(100vw - 560px) !important;
 }
 
 /* Hide the mobile search entry since we repositioned the main one */
