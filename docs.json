@@ -115,11 +115,19 @@
     "items": "toggle",
     "footer": "toggle"
   },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/lightconexyz",
-      "github": "https://github.com/lightcone-street/"
-    }
+  "navbar": {
+    "links": [
+      {
+        "label": " ",
+        "icon": "x-twitter",
+        "href": "https://x.com/lightconexyz"
+      },
+      {
+        "label": " ",
+        "icon": "github",
+        "href": "https://github.com/lightcone-street/"
+      }
+    ]
   },
   "background": {
     "color": {
