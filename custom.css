@@ -3,21 +3,28 @@
 }
 
 
-.badge-r {
+/* Badges - forced identical in both light and dark mode */
+.badge-r, .badge-r *,
+:root:not(.dark) .badge-r, :root:not(.dark) .badge-r *,
+:root.dark .badge-r, :root.dark .badge-r * {
   background-color: #4E3557 !important;
-  color: #DD96F5 !important;
+  color: #fafafa !important;
   border-color: #DD96F5 !important;
 }
 
-.badge-d {
+.badge-d, .badge-d *,
+:root:not(.dark) .badge-d, :root:not(.dark) .badge-d *,
+:root.dark .badge-d, :root.dark .badge-d * {
   background-color: #123249 !important;
-  color: #45ACF8 !important;
+  color: #fafafa !important;
   border-color: #45ACF8 !important;
 }
 
-.badge-i {
+.badge-i, .badge-i *,
+:root:not(.dark) .badge-i, :root:not(.dark) .badge-i *,
+:root.dark .badge-i, :root.dark .badge-i * {
   background-color: #1a3d3f !important;
-  color: #2f777c !important;
+  color: #fafafa !important;
   border-color: #2f777c !important;
 }
 
