@@ -4,21 +4,21 @@
 
 
 .badge-r {
-background-color: #4E3557 !important;
-color: #DC9BF2 !important;
-border-color: #DC9BF2 !important;
+  background-color: #4E3557 !important;
+  color: #DD96F5 !important;
+  border-color: #DD96F5 !important;
 }
 
 .badge-d {
-background-color: #123249 !important;
-color: #45ACF8 !important;
-border-color: #45ACF8 !important;\
+  background-color: #123249 !important;
+  color: #45ACF8 !important;
+  border-color: #45ACF8 !important;
 }
 
 .badge-i {
-background-color: #6B550E !important;
-color: #45ACF8 !important;
-border-color: #45ACF8 !important;\
+  background-color: #1a3d3f !important;
+  color: #2f777c !important;
+  border-color: #2f777c !important;
 }
 
 
@@ -26,22 +26,56 @@ border-color: #45ACF8 !important;\
 :root:not(.dark) .prose,
 :root:not(.dark) .prose p,
 :root:not(.dark) .prose li {
-  color: #4B5563 !important;
+  color: #4a5068 !important;
 }
 
 :root:not(.dark) strong,
 :root:not(.dark) b {
-  color: #374151 !important;
+  color: #1a1d1d !important;
+}
+
+:root:not(.dark) h1,
+:root:not(.dark) h2,
+:root:not(.dark) h3,
+:root:not(.dark) h4 {
+  color: #1a1d1d !important;
+}
+
+:root:not(.dark) .prose hr,
+:root:not(.dark) .prose table td,
+:root:not(.dark) .prose table th {
+  border-color: #b4b9d0 !important;
+}
+
+:root:not(.dark) :not(pre) > code {
+  background-color: #dbe0f0 !important;
 }
 
 /* DARK MODE */
 :root.dark .prose,
 :root.dark .prose p,
 :root.dark .prose li {
-  color: #D5D5D5 !important;
+  color: #dde8e8 !important;
 }
 
 :root.dark strong,
 :root.dark b {
-  color: #F0F0F0 !important;
+  color: #fafafa !important;
+}
+
+:root.dark h1,
+:root.dark h2,
+:root.dark h3,
+:root.dark h4 {
+  color: #fafafa !important;
+}
+
+:root.dark .prose hr,
+:root.dark .prose table td,
+:root.dark .prose table th {
+  border-color: #505555 !important;
+}
+
+:root.dark :not(pre) > code {
+  background-color: #383d3d !important;
 }

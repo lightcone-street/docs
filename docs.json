@@ -3,9 +3,16 @@
   "theme": "maple",
   "name": "Lightcone",
   "colors": {
-    "primary": "#6366F1",
+    "primary": "#2f777c",
     "light": "#7FDAF8",
-    "dark": "#4F46E5"
+    "dark": "#2f777c"
+  },
+  "font": {
+    "family": "Inter",
+    "headings": {
+      "family": "Inter",
+      "weight": 700
+    }
   },
   "favicon": "/favicon.svg",
   "openapi": {
@@ -117,7 +124,8 @@
   "background": {
     "decoration": "grid",
     "color": {
-      "light": "#fafafa"
+      "light": "#f0f2fa",
+      "dark": "#242526"
     }
   },
   "topbar": {
